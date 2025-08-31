@@ -10,6 +10,8 @@ export const env = createEnv({
     GITHUB_CLIENT_SECRET: z.string().min(1),
     GOOGLE_CLIENT_ID: z.string().min(1),
     GOOGLE_CLIENT_SECRET: z.string().min(1),
+    GOOGLE_EMAIL_SENDER: z.email(),
+    GOOGLE_EMAIL_SENDER_PASSWORD: z.string().min(1),
   },
   client: {
     // NEXT_PUBLIC_PUBLISHABLE_KEY: z.string().min(1),
