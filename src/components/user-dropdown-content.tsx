@@ -1,6 +1,7 @@
 import { Bell, ChartColumn, LogOut, Settings, UserIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -22,6 +23,7 @@ export default function UserDropdownContent({
   user,
 }: UserDropdownContentProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   return (
     <DropdownMenuContent
@@ -59,14 +61,6 @@ export default function UserDropdownContent({
             Profile
           </Link>
         </DropdownMenuItem>
-        {/* {user && cantViewAdminPage && (
-          <Link href={ADMIN_PATH.DASHBOARD}>
-            <DropdownMenuItem>
-              <ShieldCheck />
-              Dashboard Admin
-            </DropdownMenuItem>
-          </Link>
-        )} */}
         <DropdownMenuItem asChild>
           <Link href={ACCOUNT_PATH.NOTIFICATIONS}>
             <Bell />
@@ -86,6 +80,7 @@ export default function UserDropdownContent({
           await authClient.signOut({
             fetchOptions: {
               onSuccess: () => {
+                queryClient.removeQueries({ queryKey: ["user"] });
                 router.push(AUTH_PATH.LOGIN);
               },
             },

@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,6 +36,7 @@ export function LoginForm() {
   const nextPath = searchParams.get("next");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const queryClient = useQueryClient();
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -58,6 +60,7 @@ export function LoginForm() {
         });
         return;
       }
+      queryClient.invalidateQueries({ queryKey: ["user"] });
       router.push(nextPath?.startsWith("/") ? nextPath : "/");
     });
   }
@@ -71,7 +74,7 @@ export function LoginForm() {
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Welcome back</h1>
                 <p className="text-muted-foreground text-balance">
-                  Login to your Next Admin account
+                  Login to your Next Chat App account
                 </p>
               </div>
 

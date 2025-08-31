@@ -68,7 +68,7 @@ export function RegisterForm() {
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Create an account</h1>
                 <p className="text-muted-foreground text-balance">
-                  Register for a Next Admin account
+                  Register for a Next Chat App account
                 </p>
               </div>
               <FormField
