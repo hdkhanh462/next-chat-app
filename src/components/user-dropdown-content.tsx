@@ -1,7 +1,7 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Bell, ChartColumn, LogOut, Settings, UserIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -13,10 +13,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ACCOUNT_PATH, AUTH_PATH } from "@/constants/routes";
 import { authClient, User } from "@/lib/auth/client";
-import { getFirstLetters } from "@/utils/string";
 
 type UserDropdownContentProps = {
-  user?: User;
+  user: User;
 };
 
 export default function UserDropdownContent({
@@ -34,15 +33,15 @@ export default function UserDropdownContent({
       <DropdownMenuLabel className="p-0">
         <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
           <Avatar>
-            <AvatarImage src={user?.image || ""} alt="User avatar" />
+            <AvatarImage src={user.image || ""} alt="User avatar" />
             <AvatarFallback>
-              {getFirstLetters(user?.name) || "N/A"}
+              <UserIcon className="size-4" />
             </AvatarFallback>
           </Avatar>
           <div className="grid flex-1 text-sm leading-tight text-left">
-            <span className="font-medium truncate">{user?.name}</span>
+            <span className="font-medium truncate">{user.name}</span>
             <span className="text-xs truncate text-muted-foreground">
-              {user?.email}
+              {user.email}
             </span>
           </div>
         </div>

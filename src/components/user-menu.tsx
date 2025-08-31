@@ -1,29 +1,35 @@
 "use client";
 
+import { UserIcon } from "lucide-react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import UserDropdownContent from "@/components/user-dropdown-content";
 import { useUser } from "@/data/user";
-import { getFirstLetters } from "@/utils/string";
 
 export default function UserMenu() {
-  const { data: user } = useUser();
+  const { data: user, isLoading } = useUser();
+
+  if (isLoading) return <Skeleton className="size-8 rounded-full" />;
+
+  if (!user) return null;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="rounded-full h-auto p-0 hover:bg-transparent"
+          className="rounded-full p-0 hover:bg-transparent"
         >
           <Avatar>
-            <AvatarImage src={user?.image || ""} alt="Profile image" />
+            <AvatarImage src={user.image || ""} alt="Profile image" />
             <AvatarFallback>
-              {getFirstLetters(user?.name) || "N/A"}
+              <UserIcon className="size-4" />
             </AvatarFallback>
           </Avatar>
         </Button>

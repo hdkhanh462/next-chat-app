@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/utils/shadcn";
 import Link from "next/link";
+import { useUser } from "@/data/user";
 
 const initialNotifications = [
   {
@@ -72,7 +73,22 @@ function Dot({ className }: { className?: string }) {
 }
 
 export default function NotificationMenu() {
+  const { data: user, isLoading } = useUser();
   const [notifications, setNotifications] = useState(initialNotifications);
+
+  if (isLoading)
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="rounded-full text-muted-foreground"
+      >
+        <BellIcon size={16} aria-hidden="true" />
+      </Button>
+    );
+
+  if (!user) return null;
+
   const unreadCount = notifications.filter((n) => n.unread).length;
 
   const handleMarkAllAsRead = () => {
@@ -100,7 +116,7 @@ export default function NotificationMenu() {
         <Button
           size="icon"
           variant="ghost"
-          className="relative rounded-full shadow-none text-muted-foreground size-8"
+          className="relative rounded-full text-muted-foreground"
           aria-label="Open notifications"
         >
           <BellIcon size={16} aria-hidden="true" />
@@ -112,7 +128,7 @@ export default function NotificationMenu() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-1 w-80">
+      <PopoverContent className="p-1 w-80" align="end">
         <div className="flex items-baseline justify-between gap-4 p-2">
           <div className="text-sm font-semibold">Notifications</div>
           {unreadCount > 0 && (

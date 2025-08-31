@@ -104,15 +104,15 @@ export default function Header() {
           </div>
         </div>
         {/* Right side */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <div className="flex items-center gap-2">
             <InfoMenu />
             <ModeToggle
               variant={"ghost"}
               className="rounded-full text-muted-foreground"
             />
-            <NotificationMenu />
           </div>
+          <NotificationMenu />
           <UserMenu />
         </div>
       </div>
