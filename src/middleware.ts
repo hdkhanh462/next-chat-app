@@ -1,13 +1,11 @@
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-import { APP_ERRORS } from "@/constants/errors";
 import { AUTH_PATH } from "@/constants/routes";
 import { auth } from "@/lib/auth/server";
 import { isMatchingRoute } from "@/utils/routes";
 
 const PUBLIC_ROUTES = ["/", "/auth/*", "/api/auth/*", "/.well-known/*"];
-const ADMIN_ROUTES = ["/admin/*"];
 
 export async function middleware(request: NextRequest) {
   // Check if the request is for a public route
@@ -27,25 +25,6 @@ export async function middleware(request: NextRequest) {
     headers: await headers(),
   });
   if (!session || !session.user) return NextResponse.redirect(redirectUrl);
-
-  // Check if the request is for an admin route
-  // If the user is not an admin and trying to access an admin route, redirect them
-  const isAdminRoute = isMatchingRoute(request.nextUrl.pathname, ADMIN_ROUTES);
-  if (!isAdminRoute) return NextResponse.next();
-
-  const permissionResult = await auth.api.userHasPermission({
-    body: {
-      userId: session.user.id,
-      permission: { adminPage: ["view"] },
-    },
-  });
-  if (!permissionResult.success) {
-    redirectUrl.searchParams.set(
-      "error",
-      APP_ERRORS.FORBIDDEN_ADMIN_DASHBOARD.code
-    );
-    return NextResponse.redirect(redirectUrl);
-  }
 }
 
 export const config = {

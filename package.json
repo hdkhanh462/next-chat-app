@@ -11,11 +11,7 @@
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:reset": "prisma migrate reset",
-    "db:seed": "prisma db seed"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "db:reset": "prisma migrate reset"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",

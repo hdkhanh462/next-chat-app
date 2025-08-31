@@ -32,10 +32,6 @@ export const APP_ERRORS = {
     code: "FORBIDDEN",
     message: "Forbidden access.",
   },
-  FORBIDDEN_ADMIN_DASHBOARD: {
-    code: "FORBIDDEN_ADMIN_DASHBOARD",
-    message: "Forbidden admin dashboard access.",
-  },
   NOT_FOUND: {
     code: "NOT_FOUND",
     message: "Resource not found.",
@@ -81,16 +77,6 @@ const errorCodes = {
     vi: {
       title: "Truy cập trái phép",
       description: "Bạn không có quyền truy cập vào tài nguyên này.",
-    },
-  },
-  FORBIDDEN_ADMIN_DASHBOARD: {
-    en: {
-      title: "Forbidden access",
-      description: "You do not have permission to access admin dashboard.",
-    },
-    vi: {
-      title: "Truy cập bị cấm",
-      description: "Bạn không có quyền truy cập vào bảng điều khiển quản trị.",
     },
   },
 } satisfies ErrorTypes;

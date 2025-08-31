@@ -1,21 +1,11 @@
-import { adminClient, inferAdditionalFields } from "better-auth/client/plugins";
+import { inferAdditionalFields } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
-import { accessControl, adminRole, userRole } from "@/lib/auth/permissions";
 import { auth } from "@/lib/auth/server";
 
 export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_SERVER_URL || "",
-  plugins: [
-    inferAdditionalFields<typeof auth>(),
-    adminClient({
-      ac: accessControl,
-      roles: {
-        admin: adminRole,
-        user: userRole,
-      },
-    }),
-  ],
+  plugins: [inferAdditionalFields<typeof auth>()],
 });
 
 export type Session = typeof authClient.$Infer.Session;

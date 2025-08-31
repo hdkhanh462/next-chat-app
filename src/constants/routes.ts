@@ -4,7 +4,6 @@ export const AUTH_PATH = {
   FORGOT_PASSWORD: "/auth/forgot-password",
   API: {
     GET_SESSION: "/api/auth/get-session",
-    HAS_PERMISSION: "/api/auth/admin/has-permission",
   },
 } as const;
 
@@ -18,13 +17,5 @@ export const ACCOUNT_PATH = {
     GENERAL: "/account/settings/general",
     LANGUAGES: "/account/settings/languages",
     NOTIFICATIONS: "/account/settings/notifications",
-  },
-} as const;
-
-export const ADMIN_PATH = {
-  DASHBOARD: "/admin/dashboard",
-  SECURITY: {
-    USERS: "/admin/security/users",
-    ROLES: "/admin/security/roles",
   },
 } as const;
