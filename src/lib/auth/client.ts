@@ -1,11 +1,14 @@
-import { inferAdditionalFields } from "better-auth/client/plugins";
+import {
+  emailOTPClient,
+  inferAdditionalFields,
+} from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
 import { auth } from "@/lib/auth/server";
 
 export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_SERVER_URL || "",
-  plugins: [inferAdditionalFields<typeof auth>()],
+  plugins: [inferAdditionalFields<typeof auth>(), emailOTPClient()],
 });
 
 export type Session = typeof authClient.$Infer.Session;

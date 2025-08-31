@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
+import { emailOTP } from "better-auth/plugins/email-otp";
 
 import { env } from "@/env";
 import { sendEmail } from "@/lib/email";
@@ -10,21 +11,40 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-  plugins: [nextCookies()],
+  plugins: [
+    nextCookies(),
+    emailOTP({
+      overrideDefaultEmailVerification: true,
+      async sendVerificationOTP({ email, otp, type }) {
+        switch (type) {
+          case "sign-in":
+            await sendEmail({
+              to: email,
+              subject: "Sign in to your account",
+              text: `Your sign-in code is: ${otp}`,
+            });
+            break;
+          case "email-verification":
+            await sendEmail({
+              to: email,
+              subject: "Verify your email address",
+              text: `Your verification code is: ${otp}`,
+            });
+            break;
+          case "forget-password":
+            await sendEmail({
+              to: email,
+              subject: "Reset your password",
+              text: `Your password reset code is: ${otp}`,
+            });
+            break;
+        }
+      },
+    }),
+  ],
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,
-  },
-  emailVerification: {
-    sendOnSignUp: true,
-    autoSignInAfterVerification: true,
-    sendVerificationEmail: async ({ user, url }) => {
-      await sendEmail({
-        to: user.email,
-        subject: "Verify your email address",
-        text: `Click the link to verify your email: ${url}`,
-      });
-    },
   },
   socialProviders: {
     github: {
