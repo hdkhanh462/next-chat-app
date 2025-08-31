@@ -28,6 +28,7 @@ import {
 import { type RegisterInput, registerSchema } from "@/schemas/auth.schema";
 
 import SocialAuthSelector from "@/app/auth/_components/social-auth-seletor";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -114,12 +115,7 @@ export function RegisterForm() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••••"
-                        autoComplete="new-password"
-                        {...field}
-                      />
+                      <PasswordInput {...field} autoComplete="new-password" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

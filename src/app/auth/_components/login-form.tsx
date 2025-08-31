@@ -30,6 +30,7 @@ import {
 import { type LoginInput, loginSchema } from "@/schemas/auth.schema";
 
 import SocialAuthSelector from "@/app/auth/_components/social-auth-seletor";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
@@ -105,17 +106,15 @@ export function LoginForm() {
                       <FormLabel>Password</FormLabel>
                       <Link
                         href={AUTH_PATH.FORGOT_PASSWORD}
-                        className="ml-auto text-sm font-medium underline-offset-2 hover:underline"
+                        className="ml-auto text-sm leading-none font-medium hover:underline"
                       >
                         Forgot your password?
                       </Link>
                     </div>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••••"
-                        autoComplete="current-password"
+                      <PasswordInput
                         {...field}
+                        autoComplete="current-password"
                       />
                     </FormControl>
                     <FormMessage />
