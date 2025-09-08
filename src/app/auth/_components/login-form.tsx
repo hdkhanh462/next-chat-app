@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -31,13 +31,16 @@ import { type LoginInput, loginSchema } from "@/schemas/auth.schema";
 
 import SocialAuthSelector from "@/app/auth/_components/social-auth-seletor";
 import { PasswordInput } from "@/components/ui/password-input";
+import VerifyEmailForm from "@/app/auth/_components/verify-email-form";
+import { handleResendClick } from "@/app/auth/_constants/email";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next");
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
   const queryClient = useQueryClient();
+  const [isPending, startTransition] = useTransition();
+  const [isEmailVerified, setIsEmailVerified] = useState(true);
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -55,6 +58,12 @@ export function LoginForm() {
 
       if (isApiErrorCode(error?.code)) {
         form.setValue("password", "");
+
+        if (error.code === "EMAIL_NOT_VERIFIED") {
+          await handleResendClick({ email: values.email });
+          setIsEmailVerified(false);
+        }
+
         const errorDetail = getApiErrorDetail(error?.code);
         toast.error(errorDetail.title, {
           description: errorDetail.description,
@@ -64,6 +73,15 @@ export function LoginForm() {
       queryClient.invalidateQueries({ queryKey: ["user"] });
       router.push(nextPath?.startsWith("/") ? nextPath : "/");
     });
+  }
+
+  if (!isEmailVerified) {
+    return (
+      <VerifyEmailForm
+        initialValues={{ email: form.getValues("email"), otp: "" }}
+        initialStep={1}
+      />
+    );
   }
 
   return (

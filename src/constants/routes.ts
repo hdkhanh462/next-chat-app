@@ -1,6 +1,7 @@
 export const AUTH_PATH = {
   LOGIN: "/auth/login",
   REGISTER: "/auth/register",
+  VERIFY_EMAIL: "/auth/verify-email",
   FORGOT_PASSWORD: "/auth/forgot-password",
   API: {
     GET_SESSION: "/api/auth/get-session",

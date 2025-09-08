@@ -49,6 +49,17 @@ const errorCodes = {
       description: "Vui lòng kiểm tra email và mật khẩu của bạn và thử lại.",
     },
   },
+  EMAIL_NOT_VERIFIED: {
+    en: {
+      title: "Email not verified",
+      description: "Please verify your email address before signing in.",
+    },
+    vi: {
+      title: "Email chưa được xác minh",
+      description:
+        "Vui lòng xác minh địa chỉ email của bạn trước khi đăng nhập.",
+    },
+  },
 } satisfies ErrorTypes;
 
 type ErrorCode = keyof typeof errorCodes;

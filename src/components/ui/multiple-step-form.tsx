@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { ReactNode, useState } from "react";
 import {
   ControllerRenderProps,
   useForm,
   type FieldValues,
 } from "react-hook-form";
-import { ZodType } from "zod";
+import z from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,41 +28,53 @@ import {
 } from "@/components/ui/form";
 import { cn } from "@/utils/shadcn";
 
-export interface StepField<TSchema extends FieldValues = any> {
-  // render: (options: {
-  //   control: UseFormReturn<TSchema>["control"];
-  // }) => ReactNode;
-  key: keyof TSchema;
-  label: string;
+export interface StepField<
+  TStepSchema extends FieldValues = any,
+  TMainSchema extends FieldValues = any
+> {
+  key: keyof TStepSchema;
+  label?: string;
   description?: string;
-  render: (options: { field: ControllerRenderProps<TSchema> }) => ReactNode;
+  render: (options: {
+    field: ControllerRenderProps<TStepSchema>;
+    formData: TMainSchema;
+  }) => ReactNode;
 }
 
-export interface StepConfig<TSchema extends FieldValues = any> {
+export interface StepConfig<
+  TStepSchema extends FieldValues = any,
+  TMainSchema extends FieldValues = any
+> {
   title: string;
   description?: string;
-  fields: StepField<TSchema>[];
-  schema: ZodType<TSchema, any>;
+  fields: StepField<TStepSchema, TMainSchema>[];
+  schema: z.ZodType<TStepSchema, any>;
+  disableBackAction?: boolean;
+  onSubmit?: (data: TStepSchema) => Promise<void>;
 }
 
-export type MultipleStepFormProps<TSchema> = {
+export type MultipleStepFormProps<TMainSchema> = {
   steps: StepConfig[];
-  schema: ZodType<TSchema, any>;
+  schema: z.ZodType<TMainSchema, any>;
+  initialValues: Partial<TMainSchema>;
+  initialStep?: number;
+  submitLabel?: string;
   className?: string;
-  initialValues: Partial<TSchema>;
-  onSubmit?: (data: TSchema) => void;
+  onSubmit?: (data: TMainSchema) => void;
   stepIndicator?: (props: { step: number; progress: number }) => ReactNode;
 };
 
-export function MultipleStepForm<TSchema>({
+export function MultipleStepForm<TMainSchema>({
   steps,
-  className,
   schema,
   initialValues,
+  initialStep,
+  submitLabel,
+  className,
   onSubmit,
   stepIndicator,
-}: MultipleStepFormProps<TSchema>) {
-  const [step, setStep] = useState(0);
+}: MultipleStepFormProps<TMainSchema>) {
+  const [step, setStep] = useState(initialStep ?? 0);
   const [isComplete, setIsComplete] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState(initialValues);
@@ -70,17 +82,30 @@ export function MultipleStepForm<TSchema>({
   // Use react-hook-form for the current step
   const currentStep = steps[step];
   const currentSchema = currentStep.schema;
-  const form = useForm<any>({
+  const form = useForm<z.infer<typeof currentSchema>>({
     resolver: zodResolver(currentSchema),
     defaultValues: formData,
   });
 
   const progress = ((step + 1) / steps.length) * 100;
 
-  const handleNextStep = (data: any) => {
+  const handleNextStep = async (data: z.infer<typeof currentSchema>) => {
     const updatedData = { ...formData, ...data };
     setFormData(updatedData);
     if (step < steps.length - 1) {
+      let isContinue = true;
+      if (currentStep.onSubmit) {
+        try {
+          setIsSubmitting(true);
+          await currentStep.onSubmit(data);
+        } catch (error) {
+          isContinue = false;
+          console.error("Error in step submission:", error);
+        } finally {
+          setIsSubmitting(false);
+        }
+      }
+      if (!isContinue) return;
       setStep(step + 1);
       // Reset form with the updated data for the next step
       form.reset(updatedData);
@@ -127,7 +152,7 @@ export function MultipleStepForm<TSchema>({
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(handleNextStep)}
-                className="space-y-4"
+                className="space-y-6"
               >
                 {currentStep.fields.map((stepField) => (
                   <FormField
@@ -136,9 +161,12 @@ export function MultipleStepForm<TSchema>({
                     name={stepField.key as string}
                     render={({ field: formField }) => (
                       <FormItem>
-                        <FormLabel>{stepField.label}</FormLabel>
+                        {stepField.label && (
+                          <FormLabel>{stepField.label}</FormLabel>
+                        )}
                         {stepField.render({
                           field: formField,
+                          formData: formData,
                         })}
                         {stepField.description && (
                           <FormDescription>
@@ -156,21 +184,31 @@ export function MultipleStepForm<TSchema>({
                     variant="outline"
                     onClick={handlePrevStep}
                     disabled={step === 0}
-                    className={step === 0 ? "invisible" : ""}
+                    className={
+                      step === 0 || currentStep.disableBackAction
+                        ? "invisible"
+                        : ""
+                    }
                   >
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                    <ArrowLeft className="mr-1 size-4" /> Back
                   </Button>
-                  <Button type="submit" disabled={isSubmitting}>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || !form.formState.isDirty}
+                  >
                     {step === steps.length - 1 ? (
-                      isSubmitting ? (
-                        "Submitting..."
-                      ) : (
-                        "Submit"
-                      )
+                      <>
+                        {isSubmitting && (
+                          <Loader2 className="mr-1 animate-spin" />
+                        )}
+                        {submitLabel || "Submit"}
+                      </>
                     ) : (
                       <>
-                        <span>Next</span>{" "}
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                        {isSubmitting && (
+                          <Loader2 className="mr-1 animate-spin" />
+                        )}
+                        <span>Next</span> <ArrowRight className="ml-1 size-4" />
                       </>
                     )}
                   </Button>
