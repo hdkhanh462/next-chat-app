@@ -60,7 +60,9 @@ export type MultipleStepFormProps<TMainSchema> = {
   initialStep?: number;
   submitLabel?: string;
   className?: string;
+  children: ReactNode;
   onSubmit?: (data: TMainSchema) => void;
+  stepHeader?: (props: { step: number; progress: number }) => ReactNode;
   stepIndicator?: (props: { step: number; progress: number }) => ReactNode;
 };
 
@@ -71,7 +73,9 @@ export function MultipleStepForm<TMainSchema>({
   initialStep,
   submitLabel,
   className,
+  children,
   onSubmit,
+  stepHeader,
   stepIndicator,
 }: MultipleStepFormProps<TMainSchema>) {
   const [step, setStep] = useState(initialStep ?? 0);
@@ -217,26 +221,7 @@ export function MultipleStepForm<TMainSchema>({
             </Form>
           </div>
         ) : (
-          <div className="text-center space-y-6">
-            <div className="bg-primary/10 inline-flex h-16 w-16 items-center justify-center rounded-full">
-              <CheckCircle2 className="text-primary h-8 w-8" />
-            </div>
-            <h2 className="mb-2 text-2xl font-bold">Form Submitted!</h2>
-            <p className="text-muted-foreground">
-              Thank you for completing the form. We&apos;ll be in touch soon.
-            </p>
-            <Button
-              onClick={() => {
-                setStep(0);
-                setIsComplete(false);
-                setIsSubmitting(false);
-                setFormData(initialValues);
-                form.reset(initialValues);
-              }}
-            >
-              Start Over
-            </Button>
-          </div>
+          children
         )}
       </CardContent>
     </Card>
