@@ -1,0 +1,70 @@
+model Conversation {
+    id        String               @id @default(auto()) @map("_id") @db.ObjectId
+    name      String?
+    isGroup   Boolean              @default(false)
+    members   ConversationMember[]
+    messages  Message[]
+    createdAt DateTime             @default(now())
+    updatedAt DateTime             @default(now()) @updatedAt
+
+    @@map("conversations")
+}
+
+enum RequestStatus {
+    PENDING
+    ACCEPTED
+    REJECTED
+    BLOCKED
+}
+
+model ConversationMember {
+    id             String        @id @default(auto()) @map("_id") @db.ObjectId
+    status         RequestStatus
+    joinedAt       DateTime      @default(now())
+    conversationId String        @db.ObjectId
+    conversation   Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+    userId         String        @db.ObjectId
+    member         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([conversationId, userId])
+    @@map("conversation_members")
+}
+
+model Message {
+    id             String               @id @default(auto()) @map("_id") @db.ObjectId
+    content        String
+    createdAt      DateTime             @default(now())
+    updatedAt      DateTime             @default(now()) @updatedAt
+    conversationId String               @db.ObjectId
+    conversation   Conversation         @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+    senderId       String               @db.ObjectId
+    sender         User                 @relation(fields: [senderId], references: [id], onDelete: Cascade)
+    readReceipts   MessageSeen[]
+
+    @@map("messages")
+}
+
+model MessageSeen {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    readAt    DateTime @default(now())
+    messageId String   @db.ObjectId
+    message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+    userId    String   @db.ObjectId
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([messageId, userId])
+    @@map("message_seen")
+}
+
+model UserFriend {
+    id        String        @id @default(auto()) @map("_id") @db.ObjectId
+    status    RequestStatus
+    createdAt DateTime      @default(now())
+    userId    String        @db.ObjectId
+    user      User          @relation("UserFriends", fields: [userId], references: [id], onDelete: Cascade)
+    friendId  String        @db.ObjectId
+    friend    User          @relation("FriendOf", fields: [friendId], references: [id], onDelete: Cascade)
+
+    @@unique([userId, friendId])
+    @@map("user_friends")
+}
