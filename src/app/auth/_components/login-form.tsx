@@ -71,7 +71,9 @@ export function LoginForm() {
         return;
       }
       queryClient.invalidateQueries({ queryKey: ["user"] });
-      router.push(nextPath?.startsWith("/") ? nextPath : "/");
+      router.push(
+        nextPath?.startsWith("/") ? nextPath : AUTH_PATH.LOGIN_REDIRECT
+      );
     });
   }
 

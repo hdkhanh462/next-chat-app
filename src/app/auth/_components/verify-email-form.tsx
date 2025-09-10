@@ -1,13 +1,13 @@
 "use client";
 
+import { ArrowRight, CheckCircle2 } from "lucide-react";
+
 import { emailStep, otpStep } from "@/app/auth/_constants/email";
 import { buttonVariants } from "@/components/ui/button";
 import { MultipleStepForm } from "@/components/ui/multiple-step-form";
 import { AUTH_PATH } from "@/constants/routes";
 import { authClient } from "@/lib/auth/client";
 import { VerifyEmailInput, verifyEmailSchema } from "@/schemas/email.schema";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
-import Link from "next/link";
 
 type Props = {
   initialValues?: Partial<VerifyEmailInput>;
@@ -27,7 +27,7 @@ export default function VerifyEmailForm({
     });
 
     if (error) {
-      console.error("Error verifying email:", error);
+      console.log("Error verifying email:", error);
     }
   };
 
@@ -51,10 +51,10 @@ export default function VerifyEmailForm({
         <p className="text-muted-foreground">
           You can now proceed to login with your verified email.
         </p>
-        <Link href={AUTH_PATH.LOGIN} className={buttonVariants()}>
+        <a href={AUTH_PATH.LOGIN} className={buttonVariants()}>
           Go to Login
           <ArrowRight />
-        </Link>
+        </a>
       </div>
     </MultipleStepForm>
   );
