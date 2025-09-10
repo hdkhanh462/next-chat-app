@@ -9,7 +9,7 @@ export async function getUser() {
   return data?.user;
 }
 
-export function useUser() {
+export function useUserQuery() {
   return useQuery({
     queryKey: ["user"],
     queryFn: getUser,

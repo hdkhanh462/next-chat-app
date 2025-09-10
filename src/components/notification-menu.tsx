@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/utils/shadcn";
 import Link from "next/link";
-import { useUser } from "@/data/user";
+import { useUserQuery } from "@/hooks/data/user";
 
 const initialNotifications = [
   {
@@ -73,7 +73,7 @@ function Dot({ className }: { className?: string }) {
 }
 
 export default function NotificationMenu() {
-  const { data: user, isLoading } = useUser();
+  const { data: user, isLoading } = useUserQuery();
   const [notifications, setNotifications] = useState(initialNotifications);
 
   if (isLoading)

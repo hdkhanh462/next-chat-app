@@ -14,12 +14,15 @@ import {
 import { ACCOUNT_PATH, AUTH_PATH } from "@/constants/routes";
 import { authClient, User } from "@/lib/auth/client";
 
-type UserDropdownContentProps = {
+type UserDropdownContentProps = React.ComponentProps<
+  typeof DropdownMenuContent
+> & {
   user: User;
 };
 
 export default function UserDropdownContent({
   user,
+  side,
 }: UserDropdownContentProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -29,6 +32,7 @@ export default function UserDropdownContent({
       className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
       align="end"
       sideOffset={4}
+      side={side}
     >
       <DropdownMenuLabel className="p-0">
         <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">

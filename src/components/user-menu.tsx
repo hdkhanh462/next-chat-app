@@ -10,10 +10,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import UserDropdownContent from "@/components/user-dropdown-content";
-import { useUser } from "@/data/user";
+import { useUserQuery } from "@/hooks/data/user";
 
 export default function UserMenu() {
-  const { data: user, isLoading } = useUser();
+  const { data: user, isLoading } = useUserQuery();
 
   if (isLoading) return <Skeleton className="size-8 rounded-full" />;
 
