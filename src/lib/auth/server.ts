@@ -6,6 +6,7 @@ import { emailOTP } from "better-auth/plugins/email-otp";
 import { env } from "@/env";
 import { sendEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
+import { redis } from "@/lib/redis";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -45,6 +46,18 @@ export const auth = betterAuth({
   advanced: {
     database: {
       generateId: false,
+    },
+  },
+  secondaryStorage: {
+    get: async (key) => {
+      return await redis.get(key);
+    },
+    set: async (key, value, ttl) => {
+      if (ttl) await redis.set(key, value, "EX", ttl);
+      else await redis.set(key, value);
+    },
+    delete: async (key) => {
+      await redis.del(key);
     },
   },
   emailAndPassword: {
