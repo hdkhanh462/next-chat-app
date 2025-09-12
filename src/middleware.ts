@@ -25,6 +25,13 @@ export async function middleware(request: NextRequest) {
     headers: await headers(),
   });
   if (!session || !session.user) return NextResponse.redirect(redirectUrl);
+
+  // Put userId to x-user-id
+  return NextResponse.next({
+    headers: {
+      "X-User-Id": session.user.id,
+    },
+  });
 }
 
 export const config = {

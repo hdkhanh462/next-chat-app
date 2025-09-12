@@ -2,14 +2,12 @@
 
 import Link from "next/link";
 
-import SidebarActions from "@/app/(private)/_components/sidebar-actions";
-import SearchForm from "@/components/forms/search-form";
+import PageSidebarHeader from "@/app/(private)/_components/page-sidebar-header";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarHeader,
 } from "@/components/ui/sidebar";
 import { useContactRoutes } from "@/hooks/use-routes";
 import { cn } from "@/utils/shadcn";
@@ -19,13 +17,7 @@ export default function ContactSidebar() {
 
   return (
     <Sidebar collapsible="offcanvas">
-      <SidebarHeader className="gap-3.5 border-b p-4">
-        <div className="flex w-full items-center justify-between">
-          <div className="text-foreground text-base font-medium">Contacts</div>
-          <SidebarActions />
-        </div>
-        <SearchForm onSearch={(value) => console.log(value)} />
-      </SidebarHeader>
+      <PageSidebarHeader title="Contacts" />
       <SidebarContent>
         <SidebarGroup className="p-0">
           <SidebarGroupContent>

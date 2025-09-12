@@ -4,12 +4,19 @@ import { CircleXIcon, SearchIcon } from "lucide-react";
 import { useRef } from "react";
 
 import { Input } from "@/components/ui/input";
+import { cn } from "@/utils/shadcn";
+
+type Props = React.ComponentProps<"input"> & {
+  wraperClassName?: string;
+};
 
 export default function SearchInput({
   value,
+  className,
+  wraperClassName,
   onChange,
   ...props
-}: React.ComponentProps<"input">) {
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleClearInput = () => {
@@ -22,11 +29,11 @@ export default function SearchInput({
   };
 
   return (
-    <div className="relative">
+    <div className={cn("relative w-full", wraperClassName)}>
       <Input
         {...props}
+        className={cn("ps-9 pe-9", className)}
         type="text"
-        className="ps-9 pe-9"
         ref={inputRef}
         value={value}
         onChange={onChange}

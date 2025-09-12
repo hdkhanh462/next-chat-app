@@ -9,11 +9,10 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
-  conversations ConversationMember[] 
-  messages      Message[]            
-  messageSeens  MessageSeen[]
-  friends       UserFriend[]          @relation("UserFriends")
-  friendOf      UserFriend[]          @relation("FriendOf")
+  conversations          ConversationMember[]
+  messages               Message[]
+  sentFriendRequests     Friendship[]         @relation("UserSentRequests")
+  receivedFriendRequests Friendship[]         @relation("UserReceivedRequests")
 
   @@unique([email])
   @@map("users")

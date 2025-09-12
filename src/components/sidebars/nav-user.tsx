@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import UserDropdownContent from "@/components/user-dropdown-content";
-import { useUserQuery } from "@/hooks/data/user";
+import { useUserQuery } from "@/data/user.client";
 
 export function NavUser() {
   const { data: user, isLoading } = useUserQuery();

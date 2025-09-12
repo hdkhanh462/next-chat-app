@@ -2,15 +2,13 @@
 
 import { UserIcon } from "lucide-react";
 
-import SidebarActions from "@/app/(private)/_components/sidebar-actions";
-import SearchForm from "@/components/forms/search-form";
+import PageSidebarHeader from "@/app/(private)/_components/page-sidebar-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarHeader,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 
@@ -41,15 +39,7 @@ export default function ConversationSidebar() {
 
   return (
     <Sidebar collapsible="offcanvas">
-      <SidebarHeader className="gap-3.5 border-b p-4">
-        <div className="flex w-full items-center justify-between">
-          <div className="text-foreground text-base font-medium">
-            Conversations
-          </div>
-          <SidebarActions />
-        </div>
-        <SearchForm onSearch={(value) => console.log(value)} />
-      </SidebarHeader>
+      <PageSidebarHeader title="Conversations" />
       <SidebarContent>
         <SidebarGroup className="p-0">
           <SidebarGroupContent>
