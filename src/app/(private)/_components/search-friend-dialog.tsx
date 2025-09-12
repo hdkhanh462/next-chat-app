@@ -3,6 +3,7 @@
 import {
   CheckIcon,
   HistoryIcon,
+  Loader2,
   RotateCcwIcon,
   TrashIcon,
   User,
@@ -255,7 +256,7 @@ function FriendActionButton({
               <Button
                 variant="outline"
                 className="!p-1 size-auto"
-                disabled={accepting}
+                disabled={accepting || rejecting}
                 onClick={() =>
                   acceptRequest({ requestId: friendShip.requestId })
                 }
@@ -266,7 +267,7 @@ function FriendActionButton({
               <Button
                 variant="outline"
                 className="!p-1 size-auto"
-                disabled={rejecting}
+                disabled={rejecting || accepting}
                 onClick={() =>
                   rejectRequest({ requestId: friendShip.requestId })
                 }
@@ -284,7 +285,7 @@ function FriendActionButton({
               <Button
                 variant="outline"
                 className="!p-1 size-auto"
-                disabled={sending}
+                disabled={sending || canceling}
                 onClick={() => sendRequest({ addresseeId: targetUserId })}
               >
                 <RotateCcwIcon className="text-inherit" />
@@ -293,7 +294,7 @@ function FriendActionButton({
               <Button
                 variant="outline"
                 className="!p-1 size-auto"
-                disabled={canceling}
+                disabled={canceling || sending}
                 onClick={() =>
                   cancelRequest({ requestId: friendShip.requestId })
                 }
@@ -339,5 +340,12 @@ function FriendActionButton({
     return null;
   };
 
-  return <>{renderAction()}</>;
+  return (
+    <>
+      {(sending || accepting || rejecting || unfriending || canceling) && (
+        <Loader2 className="animate-spin" />
+      )}
+      {renderAction()}
+    </>
+  );
 }
