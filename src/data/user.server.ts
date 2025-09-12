@@ -1,5 +1,11 @@
+import "server-only";
+
 import { prisma } from "@/lib/prisma";
-import { FriendShipStatus, UserWithFriendShipStatus } from "@/types/user.type";
+import {
+  FriendShipStatus,
+  UserDTO,
+  UserWithFriendShipStatus,
+} from "@/types/user.type";
 
 export async function searchUsersWithFriendship(
   currentUserId: string,
@@ -55,4 +61,43 @@ export async function searchUsersWithFriendship(
       friendShip,
     };
   });
+}
+
+export async function searchFriends(
+  currentUserId: string,
+  keyword: string
+): Promise<UserDTO[]> {
+  const friends = await prisma.user.findMany({
+    take: 10,
+    where: {
+      id: { not: currentUserId },
+      OR: [
+        { name: { contains: keyword, mode: "insensitive" } },
+        { email: { equals: keyword, mode: "insensitive" } },
+      ],
+      AND: [
+        {
+          OR: [
+            {
+              sentFriendRequests: {
+                some: { addresseeId: currentUserId, status: "ACCEPTED" },
+              },
+            },
+            {
+              receivedFriendRequests: {
+                some: { requesterId: currentUserId, status: "ACCEPTED" },
+              },
+            },
+          ],
+        },
+      ],
+    },
+    include: { sentFriendRequests: true, receivedFriendRequests: true },
+  });
+
+  return friends.map((user) => ({
+    id: user.id,
+    name: user.name,
+    image: user.image,
+  }));
 }

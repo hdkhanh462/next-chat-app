@@ -8,12 +8,14 @@ import { cn } from "@/utils/shadcn";
 
 type Props = React.ComponentProps<"input"> & {
   wraperClassName?: string;
+  startIcon?: React.ReactNode;
 };
 
 export default function SearchInput({
   value,
   className,
   wraperClassName,
+  startIcon,
   onChange,
   ...props
 }: Props) {
@@ -39,7 +41,7 @@ export default function SearchInput({
         onChange={onChange}
       />
       <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-disabled:opacity-50">
-        <SearchIcon size={16} />
+        {startIcon ? startIcon : <SearchIcon size={16} />}
       </div>
       {value && (
         <button

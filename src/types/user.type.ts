@@ -1,5 +1,7 @@
 import { RequestStatus, User } from "@prisma/client";
 
+export type UserDTO = Pick<User, "id" | "name" | "image">;
+
 export type RequestDirection = "INCOMING" | "OUTGOING";
 
 export type FriendShipStatus = {
@@ -8,6 +10,6 @@ export type FriendShipStatus = {
   direction: RequestDirection;
 };
 
-export type UserWithFriendShipStatus = Pick<User, "id" | "name" | "image"> & {
+export type UserWithFriendShipStatus = UserDTO & {
   friendShip?: FriendShipStatus;
 };

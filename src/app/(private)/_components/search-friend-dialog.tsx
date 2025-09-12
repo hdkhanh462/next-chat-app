@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import {
   CheckIcon,
   HistoryIcon,
@@ -12,6 +13,7 @@ import {
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { TbUsersMinus, TbUsersPlus } from "react-icons/tb";
+import { toast } from "sonner";
 
 import {
   acceptFriendRequestAction,
@@ -36,8 +38,6 @@ import {
 } from "@/components/ui/tooltip";
 import { useUsersWithFriendShipStatusQuery } from "@/data/user.client";
 import { FriendShipStatus } from "@/types/user.type";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 export default function SearchFriendDialog() {
   const [open, setOpen] = useState(false);
