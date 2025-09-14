@@ -12,8 +12,6 @@ export async function middleware(request: NextRequest) {
   const isPublic = isMatchingRoute(request.nextUrl.pathname, PUBLIC_ROUTES);
   if (isPublic) return NextResponse.next();
 
-  console.log(" Middleware->Path:", request.nextUrl.pathname);
-
   // Clone the request URL for redirection
   const redirectUrl = request.nextUrl.clone();
   redirectUrl.pathname = AUTH_PATH.LOGIN;

@@ -1,16 +1,47 @@
 model Conversation {
-    id            String               @id @default(auto()) @map("_id") @db.ObjectId
-    name          String?
-    isGroup       Boolean              @default(false)
-    createdAt     DateTime             @default(now())
-    updatedAt     DateTime             @default(now()) @updatedAt
-    members       ConversationMember[]
-    messages      Message[]            @relation("ConversationMessages")
-    lastMessageId String?              @unique @db.ObjectId
-    lastMessage   Message?             @relation("ConversationLastMessage", fields: [lastMessageId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    name      String?
+    isGroup   Boolean  @default(false)
+    image     String?
+    nextSeq   Int      @default(1)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
 
-    @@index([isGroup])
+    members  ConversationMember[]
+    messages Message[]            @relation("ConversationMessages")
+
     @@map("conversations")
+}
+
+model ConversationMember {
+    id          String   @id @default(auto()) @map("_id") @db.ObjectId
+    lastReadSeq Int      @default(0)
+    joinedAt    DateTime @default(now())
+
+    conversationId String @db.ObjectId
+    userId         String @db.ObjectId
+
+    conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+    member       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([conversationId, userId])
+    @@map("conversation_members")
+}
+
+model Message {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    content   String
+    seq       Int
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    senderId       String @db.ObjectId
+    conversationId String @db.ObjectId
+
+    sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+    conversation Conversation @relation("ConversationMessages", fields: [conversationId], references: [id], onDelete: Cascade)
+
+    @@map("messages")
 }
 
 enum RequestStatus {
@@ -19,46 +50,17 @@ enum RequestStatus {
     REJECTED
 }
 
-model ConversationMember {
-    id                String        @id @default(auto()) @map("_id") @db.ObjectId
-    status            RequestStatus
-    joinedAt          DateTime      @default(now())
-    conversationId    String        @db.ObjectId
-    conversation      Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-    userId            String        @db.ObjectId
-    member            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-    lastSeenMessageId String?       @db.ObjectId
-    lastSeenMessage   Message?      @relation("MemberLastSeenMessage", fields: [lastSeenMessageId], references: [id])
-
-    @@unique([conversationId, userId])
-    @@index([status])
-    @@map("conversation_members")
-}
-
-model Message {
-    id                      String               @id @default(auto()) @map("_id") @db.ObjectId
-    content                 String
-    createdAt               DateTime             @default(now())
-    updatedAt               DateTime             @default(now()) @updatedAt
-    conversationId          String               @db.ObjectId
-    conversation            Conversation         @relation("ConversationMessages", fields: [conversationId], references: [id], onDelete: Cascade)
-    senderId                String               @db.ObjectId
-    sender                  User                 @relation(fields: [senderId], references: [id], onDelete: Cascade)
-    conversationLastMessage Conversation?        @relation("ConversationLastMessage")
-    memberLastSeenMessage   ConversationMember[] @relation("MemberLastSeenMessage")
-
-    @@map("messages")
-}
-
 model Friendship {
-    id          String        @id @default(auto()) @map("_id") @db.ObjectId
-    status      RequestStatus
-    createdAt   DateTime      @default(now())
-    updatedAt   DateTime      @default(now()) @updatedAt
-    requesterId String        @db.ObjectId
-    requester   User          @relation("UserSentRequests", fields: [requesterId], references: [id], onDelete: Cascade)
-    addresseeId String        @db.ObjectId
-    addressee   User          @relation("UserReceivedRequests", fields: [addresseeId], references: [id], onDelete: Cascade)
+    id        String        @id @default(auto()) @map("_id") @db.ObjectId
+    status    RequestStatus
+    createdAt DateTime      @default(now())
+    updatedAt DateTime      @default(now()) @updatedAt
+
+    requesterId String @db.ObjectId
+    addresseeId String @db.ObjectId
+
+    requester User @relation("UserSentRequests", fields: [requesterId], references: [id], onDelete: Cascade)
+    addressee User @relation("UserReceivedRequests", fields: [addresseeId], references: [id], onDelete: Cascade)
 
     @@unique([requesterId, addresseeId])
     @@index([status])

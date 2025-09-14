@@ -20,7 +20,7 @@ export function useUserQuery() {
   });
 }
 
-export function useUsersWithFriendShipStatusQuery() {
+export function useSearchUsersQuery() {
   const [keyword, setKeyword] = useState("");
 
   const query = useQuery({
@@ -39,7 +39,7 @@ export function useUsersWithFriendShipStatusQuery() {
   return { ...query, keyword, setKeyword };
 }
 
-export function useFriendsQuery() {
+export function useSearchUserFriendsQuery() {
   const [keyword, setKeyword] = useState("");
 
   const query = useQuery({

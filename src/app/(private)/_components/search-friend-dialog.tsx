@@ -36,18 +36,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useUsersWithFriendShipStatusQuery } from "@/data/user.client";
+import { useSearchUsersQuery } from "@/data/user.client";
 import { FriendShipStatus } from "@/types/user.type";
 
 export default function SearchFriendDialog() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [history, setHistory] = useState<string[]>([]);
-  const {
-    data: users,
-    isLoading,
-    setKeyword,
-  } = useUsersWithFriendShipStatusQuery();
+  const { data: users, isLoading, setKeyword } = useSearchUsersQuery();
   const queryClient = useQueryClient();
 
   return (
@@ -116,14 +112,14 @@ export default function SearchFriendDialog() {
             )}
           </CommandGroup>
           {isLoading && (
-            <CommandGroup heading="Search Results">
+            <CommandGroup heading="Search results">
               <CommandLoading>
                 <span className="text-muted-foreground">Loading...</span>
               </CommandLoading>
             </CommandGroup>
           )}
           {users && (
-            <CommandGroup heading="Search Results">
+            <CommandGroup heading="Search results">
               {users.length > 0 ? (
                 users.map((user) => (
                   <CommandItem key={user.id}>

@@ -38,7 +38,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useFriendsQuery } from "@/data/user.client";
+import { useSearchUserFriendsQuery } from "@/data/user.client";
 import {
   CreateConversationInput,
   createConversationSchema,
@@ -53,7 +53,7 @@ export default function SearchFriendDialog() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<SelectedUser[]>([]);
-  const { data: friends, isLoading, setKeyword } = useFriendsQuery();
+  const { data: friends, isLoading, setKeyword } = useSearchUserFriendsQuery();
   const queryClient = useQueryClient();
   const { execute: createConversation, isExecuting: conversationCreating } =
     useAction(createConversationAction, {
@@ -88,17 +88,21 @@ export default function SearchFriendDialog() {
   const handleSelectUser = (user: SelectedUser) => {
     const isSelected = selectedUsers.find((u) => u.id === user.id);
     if (isSelected) {
+      // Deselect user
       setSelectedUsers((prev) => prev.filter((u) => u.id !== user.id));
       form.setValue(
         "to",
         form.getValues("to").filter((id) => id !== user.id),
         { shouldDirty: true }
       );
-    } else {
+    } else if (selectedUsers.length < 5) {
+      // Select user
       setSelectedUsers((prev) => [...prev, user]);
       form.setValue("to", [...form.getValues("to"), user.id], {
         shouldDirty: true,
       });
+    } else {
+      toast.error("You can select up to 5 users");
     }
   };
 
@@ -141,7 +145,7 @@ export default function SearchFriendDialog() {
             />
 
             <CommandList className="max-h-72 min-h-20">
-              <CommandGroup heading="Selected users" className="!px-0">
+              <CommandGroup heading="Selected friends" className="!px-0">
                 {selectedUsers.length > 0 ? (
                   <CommandItem className="!bg-transparent ">
                     {selectedUsers.map((item) => (
@@ -163,14 +167,14 @@ export default function SearchFriendDialog() {
                 )}
               </CommandGroup>
               {isLoading && (
-                <CommandGroup heading="Search Results" className="!px-0">
+                <CommandGroup heading="Search results" className="!px-0">
                   <CommandLoading>
                     <span className="text-muted-foreground">Loading...</span>
                   </CommandLoading>
                 </CommandGroup>
               )}
               {friends && (
-                <CommandGroup heading="Search Results" className="!px-0">
+                <CommandGroup heading="Search results" className="!px-0">
                   {friends.length > 0 ? (
                     friends.map((user) => (
                       <CommandItem

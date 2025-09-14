@@ -92,7 +92,6 @@ export async function searchFriends(
         },
       ],
     },
-    include: { sentFriendRequests: true, receivedFriendRequests: true },
   });
 
   return friends.map((user) => ({

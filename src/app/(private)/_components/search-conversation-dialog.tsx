@@ -1,10 +1,11 @@
 "use client";
 
-import { HistoryIcon, TrashIcon, User } from "lucide-react";
+import { User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import SearchInputKbd from "@/app/(private)/_components/search-input-kbd";
 import SearchInput from "@/components/search-input";
-import { Button } from "@/components/ui/button";
 import {
   CommandDialog,
   CommandGroup,
@@ -12,18 +13,17 @@ import {
   CommandList,
   CommandLoading,
 } from "@/components/ui/command";
-import { useUsersWithFriendShipStatusQuery } from "@/data/user.client";
-import { useEffect, useState } from "react";
+import { useSeachUserConversationsQuery } from "@/data/conversation.client";
 
 export default function SearchConversationDialog() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [history, setHistory] = useState<string[]>([]);
   const {
-    data: users,
+    data: conversations,
     isLoading,
-    setSearch,
-  } = useUsersWithFriendShipStatusQuery();
+    setKeyword,
+  } = useSeachUserConversationsQuery("");
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -56,72 +56,39 @@ export default function SearchConversationDialog() {
             if (e.key === "Enter") {
               e.preventDefault();
               if (query.length >= 2) {
-                setSearch(query);
-                setHistory((prev) =>
-                  [query, ...prev.filter((ph) => ph !== query)].slice(0, 3)
-                );
+                setKeyword(query);
               }
             }
           }}
         />
 
         <CommandList className="max-h-72 min-h-20">
-          <CommandGroup heading="Search history">
-            {history.length > 0 ? (
-              history.map((item) => (
+          <CommandGroup heading="Search results">
+            {!isLoading && conversations && conversations.length > 0 ? (
+              conversations.map((conversation) => (
                 <CommandItem
-                  key={item}
+                  key={conversation.id}
                   onSelect={() => {
-                    setQuery(item);
-                    setSearch(item);
+                    setOpen(false);
+                    router.push(`/conversations/${conversation.id}`);
                   }}
                 >
-                  <HistoryIcon />
-                  <span>{item}</span>
-                  <Button
-                    variant="ghost"
-                    className="ml-auto !p-1 size-auto text-muted-foreground"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setHistory((prev) => prev.filter((ph) => ph !== item));
-                    }}
-                  >
-                    <TrashIcon className="text-inherit" />
-                    <span className="sr-only">Delete history</span>
-                  </Button>
+                  <div className="flex gap-2 items-center">
+                    <User />
+                    <span>{conversation.name}</span>
+                  </div>
                 </CommandItem>
               ))
-            ) : (
-              <CommandItem disabled className="justify-center">
-                <span>No history</span>
-              </CommandItem>
-            )}
-          </CommandGroup>
-          {isLoading && (
-            <CommandGroup heading="Search Results">
+            ) : isLoading ? (
               <CommandLoading>
                 <span className="text-muted-foreground">Loading...</span>
               </CommandLoading>
-            </CommandGroup>
-          )}
-          {users && (
-            <CommandGroup heading="Search Results">
-              {users.length > 0 ? (
-                users.map((user) => (
-                  <CommandItem key={user.id}>
-                    <div className="flex gap-2 items-center">
-                      <User />
-                      <span>{user.name}</span>
-                    </div>
-                  </CommandItem>
-                ))
-              ) : (
-                <CommandItem disabled className="justify-center">
-                  <span>No users found</span>
-                </CommandItem>
-              )}
-            </CommandGroup>
-          )}
+            ) : (
+              <CommandItem disabled className="justify-center">
+                <span>No conversations found</span>
+              </CommandItem>
+            )}
+          </CommandGroup>
         </CommandList>
       </CommandDialog>
     </>

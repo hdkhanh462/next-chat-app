@@ -3,7 +3,6 @@
 import { prisma } from "@/lib/prisma";
 import { authActionClient } from "@/lib/safe-action";
 import { createConversationSchema } from "@/schemas/conversation.schema";
-import { RequestStatus } from "@prisma/client";
 
 export const createConversationAction = authActionClient
   .inputSchema(createConversationSchema)
@@ -21,11 +20,9 @@ export const createConversationAction = authActionClient
               data: [
                 {
                   userId: currentUserId,
-                  status: RequestStatus.ACCEPTED,
                 },
                 ...recipientIds.map((id) => ({
                   userId: id,
-                  status: RequestStatus.PENDING,
                 })),
               ],
             },
