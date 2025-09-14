@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { ConversationWithStatusDTO } from "@/types/conversation.type";
+import {
+  ConversationWithMessagesDTO,
+  ConversationWithStatusDTO,
+} from "@/types/conversation.type";
 
 export async function searchUserConversations(
   userId: string,
@@ -37,13 +40,7 @@ export async function searchUserConversations(
         take: 2,
         select: {
           lastReadSeq: true,
-          member: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-            },
-          },
+          member: true,
         },
       },
       messages: {
@@ -61,7 +58,6 @@ export async function searchUserConversations(
     const lastMessage = conv.messages[0] && {
       id: conv.messages[0].id,
       content: conv.messages[0].content,
-      seq: conv.messages[0].seq,
       senderId: conv.messages[0].senderId,
       createdAt: conv.messages[0].createdAt,
     };
@@ -91,7 +87,7 @@ export async function searchUserConversations(
 export async function getConversationById(
   userId: string,
   conversationId: string
-): Promise<ConversationWithStatusDTO | null> {
+): Promise<ConversationWithMessagesDTO | null> {
   const conv = await prisma.conversation.findFirst({
     where: {
       id: conversationId,
@@ -104,18 +100,12 @@ export async function getConversationById(
         take: 2,
         select: {
           lastReadSeq: true,
-          member: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-            },
-          },
+          member: true,
         },
       },
       messages: {
         orderBy: { seq: "desc" },
-        take: 1,
+        include: { sender: true },
       },
     },
   });
@@ -130,7 +120,7 @@ export async function getConversationById(
     id: conv.messages[0].id,
     content: conv.messages[0].content,
     seq: conv.messages[0].seq,
-    senderId: conv.messages[0].senderId,
+    senderId: conv.messages[0].sender.id,
     createdAt: conv.messages[0].createdAt,
   };
 
@@ -149,8 +139,8 @@ export async function getConversationById(
     isGroup: conv.isGroup,
     name: displayName,
     image: displayImage,
-    nextSeq: conv.nextSeq,
     lastMessage: lastMessage,
+    messages: conv.messages,
     unread: unreadCount,
   };
 }

@@ -2,7 +2,10 @@ import { betterFetch } from "@better-fetch/fetch";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
-import { ConversationWithStatusDTO } from "@/types/conversation.type";
+import {
+  ConversationWithMessagesDTO,
+  ConversationWithStatusDTO,
+} from "@/types/conversation.type";
 import { useParams } from "next/navigation";
 
 export function useSeachUserConversationsQuery(initialKeyword?: string) {
@@ -45,7 +48,7 @@ export function useConversationQuery() {
   const query = useQuery({
     queryKey: ["conversation", conversationId],
     queryFn: async () => {
-      const result = await betterFetch<ConversationWithStatusDTO | null>(
+      const result = await betterFetch<ConversationWithMessagesDTO | null>(
         "/api/conversations/" + conversationId
       );
       return result.data || null;

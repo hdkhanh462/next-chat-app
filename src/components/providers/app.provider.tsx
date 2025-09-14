@@ -25,7 +25,7 @@ export default function AppProvider({ children }: PropsWithChildren) {
     >
       <QueryClientProvider client={queryClient}>
         {children}
-        <ReactQueryDevtools initialIsOpen={false} />
+        <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-right" />
       </QueryClientProvider>
       <Toaster richColors duration={3000} />
     </ThemeProvider>
