@@ -5,4 +5,5 @@ export type MessageDTO = Omit<Message, "updatedAt" | "conversationId" | "seq">;
 
 export type MessageWithSenderDTO = Omit<MessageDTO, "senderId"> & {
   sender: UserDTO;
+  seenBy: UserDTO[];
 };

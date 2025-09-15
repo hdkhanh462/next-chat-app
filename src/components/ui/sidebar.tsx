@@ -189,18 +189,18 @@ function Sidebar({
           data-slot="sidebar"
           data-mobile="true"
           className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
-          style={
-            {
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-            } as React.CSSProperties
-          }
+          // style={
+          //   {
+          //     "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
+          //   } as React.CSSProperties
+          // }
           side={side}
         >
           <SheetHeader className="sr-only">
             <SheetTitle>Sidebar</SheetTitle>
             <SheetDescription>Displays the mobile sidebar.</SheetDescription>
           </SheetHeader>
-          <div className="flex h-full w-full flex-col">{children}</div>
+          <div className="flex flex-col w-full h-full">{children}</div>
         </SheetContent>
       </Sheet>
     );
@@ -208,7 +208,7 @@ function Sidebar({
 
   return (
     <div
-      className="group peer text-sidebar-foreground hidden md:block"
+      className="hidden group peer text-sidebar-foreground md:block"
       data-state={state}
       data-collapsible={state === "collapsed" ? collapsible : ""}
       data-variant={variant}
@@ -621,7 +621,7 @@ function SidebarMenuSkeleton({
     >
       {showIcon && (
         <Skeleton
-          className="size-4 rounded-md"
+          className="rounded-md size-4"
           data-sidebar="menu-skeleton-icon"
         />
       )}

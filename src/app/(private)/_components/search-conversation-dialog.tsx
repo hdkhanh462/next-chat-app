@@ -41,7 +41,7 @@ export default function SearchConversationDialog() {
     <>
       <SearchInputKbd
         onFocus={() => setOpen(true)}
-        placeholder="Search conversations by name..."
+        placeholder="Search conversations..."
       />
       <CommandDialog open={open} onOpenChange={setOpen} showCloseButton={false}>
         <SearchInput
@@ -73,7 +73,7 @@ export default function SearchConversationDialog() {
                     router.push(`/conversations/${conversation.id}`);
                   }}
                 >
-                  <div className="flex gap-2 items-center">
+                  <div className="flex items-center gap-2">
                     <User />
                     <span>{conversation.name}</span>
                   </div>

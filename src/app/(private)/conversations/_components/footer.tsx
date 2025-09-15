@@ -2,43 +2,56 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { HiPhoto } from "react-icons/hi2";
-import { HiPaperAirplane } from "react-icons/hi2";
+import { HiPaperAirplane, HiPhoto } from "react-icons/hi2";
 
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  CreateMessageInput,
+  createMessageSchema,
+} from "@/schemas/message.schema";
+import { useAction } from "next-safe-action/hooks";
+import { createMessageAction } from "@/actions/message.action";
+import { toast } from "sonner";
+import { useConversationQuery } from "@/data/conversation.client";
 
-const formSchema = z.object({
-  message: z.string().min(1, {
-    message: "Message must be at least 1 character.",
-  }),
-});
+type Props = {
+  conversationId: string;
+};
 
-export default function ConversationFooter() {
-  // 1. Define your form.
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+export default function ConversationFooter({ conversationId }: Props) {
+  const { execute, isExecuting } = useAction(createMessageAction, {
+    onSuccess() {
+      form.reset();
+    },
+    onError({ error }) {
+      console.log("Create conversation error:", error);
+      toast.error("Failed to send message, please try again");
+    },
+  });
+  const form = useForm<CreateMessageInput>({
+    resolver: zodResolver(createMessageSchema),
     defaultValues: {
-      message: "",
+      conversationId: conversationId,
+      content: "",
+      images: [],
     },
   });
 
-  // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
+  function onSubmit(values: CreateMessageInput) {
     console.log(values);
+    execute({
+      ...values,
+      content: values.content.trim(),
+    });
   }
 
   return (
@@ -54,7 +67,7 @@ export default function ConversationFooter() {
         >
           <FormField
             control={form.control}
-            name="message"
+            name="content"
             render={({ field }) => (
               <FormItem className="flex-1">
                 <FormLabel className="sr-only">Message</FormLabel>
@@ -69,7 +82,12 @@ export default function ConversationFooter() {
               </FormItem>
             )}
           />
-          <Button type="submit" size="icon" className="rounded-full">
+          <Button
+            type="submit"
+            size="icon"
+            className="rounded-full"
+            disabled={!form.formState.isDirty || isExecuting}
+          >
             <HiPaperAirplane className="size-5" />
           </Button>
         </form>

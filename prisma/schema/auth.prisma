@@ -11,6 +11,7 @@ model User {
 
   conversations          ConversationMember[]
   messages               Message[]
+  messageSeens           MessageSeen[]
   sentFriendRequests     Friendship[]         @relation("UserSentRequests")
   receivedFriendRequests Friendship[]         @relation("UserReceivedRequests")
 

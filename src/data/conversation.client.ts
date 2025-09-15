@@ -1,12 +1,12 @@
 import { betterFetch } from "@better-fetch/fetch";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import {
-  ConversationWithMessagesDTO,
+  ConversationDTO,
   ConversationWithStatusDTO,
 } from "@/types/conversation.type";
-import { useParams } from "next/navigation";
+import { MessageWithSenderDTO } from "@/types/message.type";
 
 export function useSeachUserConversationsQuery(initialKeyword?: string) {
   const [keyword, setKeyword] = useState<string | undefined>(initialKeyword);
@@ -39,21 +39,34 @@ export function useSeachUserConversationsQuery(initialKeyword?: string) {
   return { ...query, keyword, setKeyword };
 }
 
-export function useConversationQuery() {
-  const params = useParams();
-  const conversationId = useMemo(
-    () => (params?.id as string) || "",
-    [params.id]
-  );
-  const query = useQuery({
+export function useConversationQuery(conversationId: string) {
+  return useQuery({
     queryKey: ["conversation", conversationId],
     queryFn: async () => {
-      const result = await betterFetch<ConversationWithMessagesDTO | null>(
+      const result = await betterFetch<ConversationDTO | null>(
         "/api/conversations/" + conversationId
       );
       return result.data || null;
     },
   });
+}
 
-  return { ...query, conversationId };
+export function useMessagesQuery(conversationId: string) {
+  const [cursor, setCursor] = useState<string>();
+  const query = useQuery({
+    queryKey: ["conversation", conversationId, "messages", cursor],
+    queryFn: async () => {
+      let queryStr = "";
+      if (cursor) {
+        queryStr += "?cursor=" + cursor;
+      }
+
+      const result = await betterFetch<MessageWithSenderDTO[]>(
+        "/api/conversations/" + conversationId + "/messages" + queryStr
+      );
+      return result.data || [];
+    },
+  });
+
+  return { ...query, cursor, setCursor };
 }

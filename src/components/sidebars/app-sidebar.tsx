@@ -31,12 +31,12 @@ export function AppSidebar() {
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
                 <Link href="/">
-                  <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                  <div className="flex items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground aspect-square size-8">
                     <Command className="size-4" />
                   </div>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">Acme Inc</span>
-                    <span className="truncate text-xs">Enterprise</span>
+                  <div className="grid flex-1 text-sm leading-tight text-left">
+                    <span className="font-medium truncate">Acme Inc</span>
+                    <span className="text-xs truncate">Enterprise</span>
                   </div>
                 </Link>
               </SidebarMenuButton>

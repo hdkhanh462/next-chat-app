@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 
 import AvartarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
@@ -46,36 +46,49 @@ function ComvarsationItem({ conversation }: ComvarsationItemProps) {
   const { data: currentUser } = useUserQuery();
   const formatedDate =
     conversation.lastMessage &&
-    format(new Date(conversation.lastMessage?.createdAt), "MMM d");
+    formatDistanceToNow(new Date(conversation.lastMessage?.createdAt), {
+      addSuffix: true,
+    });
   const senderIsCurrentUser =
     conversation.lastMessage?.senderId === currentUser?.id;
+  const notifications =
+    conversation.unread > 0 ? conversation.unread : undefined;
 
   return (
     <Link
       href={`/conversations/${conversation.id}`}
       key={conversation.id}
-      className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 border-b p-4 text-sm leading-tight whitespace-nowrap last:border-b-0"
+      className="flex items-center gap-2 p-4 text-sm leading-tight border-b hover:bg-sidebar-accent hover:text-sidebar-accent-foreground whitespace-nowrap last:border-b-0"
     >
       <AvartarWithIndicator
         className="size-10"
         image={conversation.image}
         alt={conversation.name}
         online={false}
-        notifications={
-          conversation.unread > 0 ? conversation.unread : undefined
-        }
+        notifications={notifications}
       />
       <div className="w-full">
-        <div className="flex w-full items-center gap-2">
+        <div className="flex items-center w-full gap-2">
           <span className="font-medium">{conversation.name}</span>{" "}
           {formatedDate && (
-            <span className="ml-auto text-xs">{formatedDate}</span>
+            <span
+              className={cn(
+                "ml-auto text-xs to-primary",
+                (!notifications ||
+                  notifications === 0 ||
+                  senderIsCurrentUser) &&
+                  "text-muted-foreground"
+              )}
+            >
+              {formatedDate}
+            </span>
           )}
         </div>
         <span
           className={cn(
-            "line-clamp-1 w-[260px] text-sm whitespace-break-spaces text-muted-foreground",
-            conversation.unread > 0 && "text-primary"
+            "line-clamp-1 w-[260px] text-sm whitespace-break-spaces text-primary",
+            (!notifications || notifications === 0 || senderIsCurrentUser) &&
+              "text-muted-foreground"
           )}
         >
           {conversation.lastMessage?.content
