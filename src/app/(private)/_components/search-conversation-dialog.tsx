@@ -1,8 +1,8 @@
 "use client";
 
 import { User } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import SearchInputKbd from "@/app/(private)/_components/search-input-kbd";
 import SearchInput from "@/components/search-input";
@@ -13,7 +13,7 @@ import {
   CommandList,
   CommandLoading,
 } from "@/components/ui/command";
-import { useSeachUserConversationsQuery } from "@/data/conversation.client";
+import { useUserConversationsQuery } from "@/data/hooks/conversation";
 
 export default function SearchConversationDialog() {
   const router = useRouter();
@@ -23,7 +23,7 @@ export default function SearchConversationDialog() {
     data: conversations,
     isLoading,
     setKeyword,
-  } = useSeachUserConversationsQuery("");
+  } = useUserConversationsQuery("");
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {

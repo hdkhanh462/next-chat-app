@@ -1,15 +1,19 @@
-import { differenceInMinutes, format, isSameDay } from "date-fns";
-import { useRef, useState } from "react";
+"use client";
 
+import { differenceInMinutes, format, isSameDay } from "date-fns";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useAction } from "next-safe-action/hooks";
+
+import { seenMessage } from "@/actions/message.action";
 import AvartarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
-import { useUserQuery } from "@/data/user.client";
-import { MessageWithSenderDTO } from "@/types/message.type";
-import { cn } from "@/utils/shadcn";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useUserQuery } from "@/data/hooks/user";
+import { MessageWithSenderDTO } from "@/types/message.type";
+import { cn } from "@/utils/shadcn";
 
 type Props = {
   conversationId: string;
@@ -19,6 +23,14 @@ type Props = {
 export default function ConversationBody({ initial, conversationId }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<MessageWithSenderDTO[]>(initial);
+  const [isMounted, setIsMounted] = useState(false);
+  const { execute: seenMessageExecute } = useAction(seenMessage);
+
+  useEffect(() => {
+    if (isMounted) return;
+    setIsMounted(true);
+    seenMessageExecute({ conversationId });
+  }, [isMounted, conversationId, seenMessageExecute]);
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -48,27 +60,32 @@ function MessageItem({ isLast, message, prevMessage }: MessageItemProps) {
     (u) => u.id !== currentUser?.id && u.id !== message.sender.id
   );
 
-  const today = new Date();
-  const currentDate = new Date(message.createdAt);
-  const prevDate = prevMessage ? new Date(prevMessage.createdAt) : null;
+  const { showTimestamp, formattedDate } = useMemo(() => {
+    const today = new Date();
+    const currentDate = new Date(message.createdAt);
+    const prevMessageDate = prevMessage
+      ? new Date(prevMessage.createdAt)
+      : null;
+    let showTimestamp = true;
+    let isSameDayAsPrev = true;
+    let formattedDate = "";
 
-  let showTimestamp = true;
-  let formattedDate = "";
-
-  if (prevDate) {
-    const sameDay = isSameDay(currentDate, prevDate);
-    const diffMinutes = differenceInMinutes(currentDate, prevDate);
-
-    if (sameDay && diffMinutes < 15) {
-      showTimestamp = false;
+    if (prevMessageDate) {
+      isSameDayAsPrev = isSameDay(today, prevMessageDate);
+      const sameDay = isSameDay(currentDate, prevMessageDate);
+      const diffMinutes = differenceInMinutes(currentDate, prevMessageDate);
+      if (sameDay && diffMinutes < 5) showTimestamp = false;
     }
-  }
 
-  if (showTimestamp) {
-    formattedDate = isSameDay(today, currentDate)
-      ? format(currentDate, "p")
-      : format(currentDate, "Pp");
-  }
+    if (showTimestamp) {
+      formattedDate =
+        isSameDay(today, currentDate) && isSameDayAsPrev
+          ? format(currentDate, "p")
+          : format(currentDate, "Pp");
+    }
+
+    return { showTimestamp, formattedDate };
+  }, [message, prevMessage]);
 
   return (
     <div className="py-4">
@@ -78,12 +95,14 @@ function MessageItem({ isLast, message, prevMessage }: MessageItemProps) {
         </div>
       )}
       <div className={cn("flex gap-3 px-4 py-2", isOwn && "justify-end")}>
-        <div className={cn("flex items-end", isOwn && "order-2")}>
-          <AvartarWithIndicator
-            image={message.sender.image}
-            alt={message.sender.name || "Sender avartar"}
-          />
-        </div>
+        {!isOwn && (
+          <div className="flex items-end">
+            <AvartarWithIndicator
+              image={message.sender.image}
+              alt={message.sender.name || "Sender avartar"}
+            />
+          </div>
+        )}
         <div className={cn("flex flex-col gap-1", isOwn && "items-start")}>
           {!isOwn && (
             <div className="text-xs font-medium text-muted-foreground">
@@ -101,7 +120,8 @@ function MessageItem({ isLast, message, prevMessage }: MessageItemProps) {
         </div>
       </div>
       <div className="flex justify-end gap-1 px-4">
-        {seenBy.length > 0 &&
+        {isLast &&
+          seenBy.length > 0 &&
           seenBy.map((sb) => (
             <Tooltip key={sb.id}>
               <TooltipTrigger>

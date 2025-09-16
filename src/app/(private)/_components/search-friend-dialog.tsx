@@ -36,7 +36,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useSearchUsersQuery } from "@/data/user.client";
+import { useSearchUsersQuery } from "@/data/hooks/user";
 import { FriendShipStatus } from "@/types/user.type";
 
 export default function SearchFriendDialog() {

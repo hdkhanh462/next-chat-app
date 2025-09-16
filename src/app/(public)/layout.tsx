@@ -1,20 +1,12 @@
-import { AppSidebar } from "@/components/sidebars/app-sidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { PropsWithChildren } from "react";
+
+import Header from "@/app/(public)/_components/header";
 
 export default function Layout({ children }: PropsWithChildren) {
   return (
     <>
-      <SidebarProvider
-        style={
-          {
-            "--sidebar-width": "350px",
-          } as React.CSSProperties
-        }
-      >
-        <AppSidebar />
-        {children}
-      </SidebarProvider>
+      <Header />
+      {children}
     </>
   );
 }

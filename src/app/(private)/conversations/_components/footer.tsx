@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { HiPaperAirplane, HiPhoto } from "react-icons/hi2";
 
+import { createMessageAction } from "@/actions/message.action";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -19,9 +20,7 @@ import {
   createMessageSchema,
 } from "@/schemas/message.schema";
 import { useAction } from "next-safe-action/hooks";
-import { createMessageAction } from "@/actions/message.action";
 import { toast } from "sonner";
-import { useConversationQuery } from "@/data/conversation.client";
 
 type Props = {
   conversationId: string;

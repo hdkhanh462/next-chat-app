@@ -1,3 +1,6 @@
+import "server-only";
+
+import { getUserCached } from "@/data/user";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/redis";
 import {
@@ -7,15 +10,16 @@ import {
 import { MessageWithSenderDTO } from "@/types/message.type";
 
 export async function getConversations(
-  userId: string,
   keyword: string | null
 ): Promise<ConversationWithStatusDTO[]> {
+  const user = await getUserCached();
+
   // 1. Get conversations
   const conversations = await prisma.conversation.findMany({
     take: 10,
     orderBy: { updatedAt: "desc" },
     where: {
-      members: { some: { memberId: userId } },
+      members: { some: { memberId: user.id } },
       ...(keyword
         ? {
             OR: [
@@ -25,7 +29,7 @@ export async function getConversations(
               {
                 members: {
                   some: {
-                    memberId: { not: userId },
+                    memberId: { not: user.id },
                     member: {
                       name: { contains: keyword, mode: "insensitive" },
                     },
@@ -50,7 +54,7 @@ export async function getConversations(
   // 2. Get lastSeen of user for all conversations (map conversationId -> Date)
   const lastSeens = await prisma.messageSeen.findMany({
     where: {
-      userId,
+      userId: user.id,
       message: { conversationId: { in: convIds } },
     },
     orderBy: { seenAt: "desc" },
@@ -74,7 +78,7 @@ export async function getConversations(
     by: ["conversationId"],
     where: {
       conversationId: { in: convIds },
-      senderId: { not: userId },
+      senderId: { not: user.id },
       OR: convIds.map((id) => {
         const lastSeen = lastSeenMap.get(id);
         return lastSeen
@@ -99,7 +103,7 @@ export async function getConversations(
 
     const { displayName, displayImage } = extractConversationDetails(
       conv,
-      userId
+      user.id
     );
 
     return {
@@ -176,7 +180,7 @@ function extractConversationDetails(
   return { displayName, displayImage };
 }
 
-export async function getOlderMessages(
+export async function getConversationMessages(
   userId: string,
   conversationId: string,
   cursor: string | null // id of the lastest message from current loaded messages

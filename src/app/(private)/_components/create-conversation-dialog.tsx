@@ -38,7 +38,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useSearchUserFriendsQuery } from "@/data/user.client";
+import { useSearchUserFriendsQuery } from "@/data/hooks/user";
 import {
   CreateConversationInput,
   createConversationSchema,

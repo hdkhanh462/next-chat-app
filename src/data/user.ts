@@ -1,5 +1,9 @@
 import "server-only";
 
+import { headers } from "next/headers";
+import { cache } from "react";
+
+import { auth } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
 import {
   FriendShipStatus,
@@ -7,14 +11,23 @@ import {
   UserWithFriendShipStatus,
 } from "@/types/user.type";
 
-export async function searchUsersWithFriendship(
-  currentUserId: string,
+export const getUserCached = cache(async () => {
+  const sessionDat = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!sessionDat || !sessionDat.user) throw new Error("Unauthenticated");
+  return sessionDat.user;
+});
+
+export async function searchUsers(
   keyword: string
 ): Promise<UserWithFriendShipStatus[]> {
+  const user = await getUserCached();
+
   const users = await prisma.user.findMany({
     take: 10,
     where: {
-      id: { not: currentUserId },
+      id: { not: user.id },
       OR: [
         { name: { contains: keyword, mode: "insensitive" } },
         { email: { equals: keyword, mode: "insensitive" } },
@@ -25,11 +38,11 @@ export async function searchUsersWithFriendship(
       name: true,
       image: true,
       sentFriendRequests: {
-        where: { addresseeId: currentUserId }, // người này gửi request đến tôi
+        where: { addresseeId: user.id }, // người này gửi request đến tôi
         select: { id: true, status: true },
       },
       receivedFriendRequests: {
-        where: { requesterId: currentUserId }, // tôi gửi request đến người này
+        where: { requesterId: user.id }, // tôi gửi request đến người này
         select: { id: true, status: true },
       },
     },
@@ -63,14 +76,13 @@ export async function searchUsersWithFriendship(
   });
 }
 
-export async function searchFriends(
-  currentUserId: string,
-  keyword: string
-): Promise<UserDTO[]> {
+export async function searchFriends(keyword: string): Promise<UserDTO[]> {
+  const user = await getUserCached();
+
   const friends = await prisma.user.findMany({
     take: 10,
     where: {
-      id: { not: currentUserId },
+      id: { not: user.id },
       OR: [
         { name: { contains: keyword, mode: "insensitive" } },
         { email: { equals: keyword, mode: "insensitive" } },
@@ -80,12 +92,12 @@ export async function searchFriends(
           OR: [
             {
               sentFriendRequests: {
-                some: { addresseeId: currentUserId, status: "ACCEPTED" },
+                some: { addresseeId: user.id, status: "ACCEPTED" },
               },
             },
             {
               receivedFriendRequests: {
-                some: { requesterId: currentUserId, status: "ACCEPTED" },
+                some: { requesterId: user.id, status: "ACCEPTED" },
               },
             },
           ],

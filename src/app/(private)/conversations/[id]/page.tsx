@@ -1,52 +1,29 @@
-"use client";
-
-import { seenMessage } from "@/actions/message.action";
 import ConversationBody from "@/app/(private)/conversations/_components/body";
 import ConversationFooter from "@/app/(private)/conversations/_components/footer";
 import ConversationHeader from "@/app/(private)/conversations/_components/header";
 import {
-  useConversationQuery,
-  useMessagesQuery,
-} from "@/data/conversation.client";
-import { Loader2 } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+  getConversationById,
+  getConversationMessages,
+} from "@/data/conversation";
+import { getUserCached } from "@/data/user";
 
-export default function Page() {
-  const params = useParams();
-  const conversationId = useMemo(
-    () => (params?.id as string) || "",
-    [params.id]
-  );
-  const { data: conversation, isFetching: isFetchingConversation } =
-    useConversationQuery(conversationId);
-  const { data: messages, isFetching: isFetchingMessages } =
-    useMessagesQuery(conversationId);
-  const { execute: seenMessageExecute } = useAction(seenMessage);
-  const [isMounted, setIsMounted] = useState(false);
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
 
-  useEffect(() => {
-    if (isMounted) return;
-    setIsMounted(true);
-    seenMessageExecute({ conversationId });
-  }, [isMounted, conversationId, seenMessageExecute]);
+export default async function Page({ params }: PageProps) {
+  const { id: convId } = await params;
+  const user = await getUserCached();
+  const conv = await getConversationById(user.id, convId);
+  const messages = await getConversationMessages(user.id, convId, null);
 
-  if (isFetchingConversation || isFetchingMessages) {
-    return (
-      <div className="flex items-center justify-center flex-1 h-full">
-        <Loader2 className="animate-spin size-8" />
-      </div>
-    );
-  }
-
-  if (!conversation || !messages) return null;
+  if (!conv) return <div>Conversation not found</div>;
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden max-h-dvh">
-      <ConversationHeader initial={conversation} />
-      <ConversationBody initial={messages} conversationId={conversationId} />
-      <ConversationFooter conversationId={conversationId} />
+      <ConversationHeader initial={conv} />
+      <ConversationBody initial={messages} conversationId={convId} />
+      <ConversationFooter conversationId={convId} />
     </div>
   );
 }

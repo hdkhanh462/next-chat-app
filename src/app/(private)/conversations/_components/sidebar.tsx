@@ -11,13 +11,13 @@ import {
   SidebarGroup,
   SidebarGroupContent,
 } from "@/components/ui/sidebar";
-import { useSeachUserConversationsQuery } from "@/data/conversation.client";
-import { useUserQuery } from "@/data/user.client";
+import { useUserConversationsQuery } from "@/data/hooks/conversation";
+import { useUserQuery } from "@/data/hooks/user";
 import { ConversationWithStatusDTO } from "@/types/conversation.type";
 import { cn } from "@/utils/shadcn";
 
 export default function ConversationSidebar() {
-  const { data: conversations } = useSeachUserConversationsQuery();
+  const { data: conversations } = useUserConversationsQuery();
 
   return (
     <Sidebar collapsible="offcanvas">
