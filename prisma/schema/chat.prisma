@@ -1,0 +1,56 @@
+model Conversation {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    name      String?
+    isGroup   Boolean  @default(false)
+    image     String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    memberIds String[] @db.ObjectId
+
+    members  User[]    @relation("ConversationMembers", fields: [memberIds], references: [id])
+    messages Message[] @relation("ConversationMessages")
+
+    @@map("conversations")
+}
+
+model Message {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    content   String
+    images    String[]
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    senderId       String   @db.ObjectId
+    conversationId String   @db.ObjectId
+    seenByIds      String[] @db.ObjectId
+
+    sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+    seenBy       User[]       @relation("MessageSeenBy", fields: [seenByIds], references: [id])
+    conversation Conversation @relation("ConversationMessages", fields: [conversationId], references: [id], onDelete: Cascade)
+
+    @@map("messages")
+}
+
+enum RequestStatus {
+    PENDING
+    ACCEPTED
+    REJECTED
+}
+
+model Friendship {
+    id        String        @id @default(auto()) @map("_id") @db.ObjectId
+    status    RequestStatus
+    createdAt DateTime      @default(now())
+    updatedAt DateTime      @default(now()) @updatedAt
+
+    requesterId String @db.ObjectId
+    addresseeId String @db.ObjectId
+
+    requester User @relation("UserSentRequests", fields: [requesterId], references: [id], onDelete: Cascade)
+    addressee User @relation("UserReceivedRequests", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+    @@unique([requesterId, addresseeId])
+    @@index([status])
+    @@map("friendships")
+}
