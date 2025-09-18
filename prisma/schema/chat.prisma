@@ -6,7 +6,6 @@ model Conversation {
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt
 
-    // members  ConversationMember[]
     memberIds String[] @db.ObjectId
 
     members  User[]    @relation("ConversationMembers", fields: [memberIds], references: [id])
@@ -14,20 +13,6 @@ model Conversation {
 
     @@map("conversations")
 }
-
-// model ConversationMember {
-//     id       String   @id @default(auto()) @map("_id") @db.ObjectId
-//     joinedAt DateTime @default(now())
-
-//     conversationId String @db.ObjectId
-//     memberId       String @map("userId") @db.ObjectId
-
-//     conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-//     member       User         @relation(fields: [memberId], references: [id], onDelete: Cascade)
-
-//     @@unique([conversationId, memberId])
-//     @@map("conversation_members")
-// }
 
 model Message {
     id        String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -39,7 +24,6 @@ model Message {
     senderId       String   @db.ObjectId
     conversationId String   @db.ObjectId
     seenByIds      String[] @db.ObjectId
-    // seenBy        MessageSeen[]
 
     sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
     seenBy       User[]       @relation("MessageSeenBy", fields: [seenByIds], references: [id])
@@ -47,20 +31,6 @@ model Message {
 
     @@map("messages")
 }
-
-// model MessageSeen {
-//     id        String   @id @default(auto()) @map("_id") @db.ObjectId
-//     seenAt    DateTime @default(now()) 
-
-//     messageId String @db.ObjectId
-//     userId    String  @db.ObjectId
-
-//     message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-//     user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-//     @@unique([messageId, userId])
-//     @@map("message_seens")
-// }
 
 enum RequestStatus {
     PENDING

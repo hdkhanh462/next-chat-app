@@ -12,8 +12,6 @@ model User {
   seenMessagesIds String[] @db.ObjectId
   conversationIds String[] @db.ObjectId
 
-  // messageSeens           MessageSeen[]
-  // conversations          ConversationMember[]
   seenMessages           Message[]      @relation("MessageSeenBy", fields: [seenMessagesIds], references: [id])
   conversations          Conversation[] @relation("ConversationMembers", fields: [conversationIds], references: [id])
   messages               Message[]
