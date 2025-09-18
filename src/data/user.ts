@@ -12,11 +12,11 @@ import {
 } from "@/types/user.type";
 
 export const getUserCached = cache(async () => {
-  const sessionDat = await auth.api.getSession({
+  const sessionData = await auth.api.getSession({
     headers: await headers(),
   });
-  if (!sessionDat || !sessionDat.user) throw new Error("Unauthenticated");
-  return sessionDat.user;
+  if (!sessionData || !sessionData.user) throw new Error("Unauthenticated");
+  return sessionData.user;
 });
 
 export async function searchUsers(
@@ -38,11 +38,11 @@ export async function searchUsers(
       name: true,
       image: true,
       sentFriendRequests: {
-        where: { addresseeId: user.id }, // người này gửi request đến tôi
+        where: { addresseeId: user.id },
         select: { id: true, status: true },
       },
       receivedFriendRequests: {
-        where: { requesterId: user.id }, // tôi gửi request đến người này
+        where: { requesterId: user.id },
         select: { id: true, status: true },
       },
     },
@@ -52,14 +52,12 @@ export async function searchUsers(
     let friendShip: FriendShipStatus | undefined;
 
     if (user.sentFriendRequests.length > 0) {
-      // Người kia gửi request đến tôi
       friendShip = {
         requestId: user.sentFriendRequests[0].id,
         status: user.sentFriendRequests[0].status,
         direction: "INCOMING",
       };
     } else if (user.receivedFriendRequests.length > 0) {
-      // Tôi gửi request đến người kia
       friendShip = {
         requestId: user.receivedFriendRequests[0].id,
         status: user.receivedFriendRequests[0].status,
