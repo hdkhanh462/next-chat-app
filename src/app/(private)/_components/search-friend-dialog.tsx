@@ -7,7 +7,6 @@ import {
   Loader2,
   RotateCcwIcon,
   TrashIcon,
-  User,
   XIcon,
 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -22,6 +21,7 @@ import {
   sendFriendRequestAction,
   unfriendAction,
 } from "@/actions/friend.action";
+import AvartarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
 import SearchInput from "@/components/search-input";
 import { Button } from "@/components/ui/button";
 import {
@@ -124,7 +124,10 @@ export default function SearchFriendDialog() {
                 users.map((user) => (
                   <CommandItem key={user.id}>
                     <div className="flex gap-2 items-center">
-                      <User />
+                      <AvartarWithIndicator
+                        image={user.image}
+                        alt={user.name}
+                      />
                       <span>{user.name}</span>
                     </div>
                     <div className="flex gap-2 items-center ml-auto">

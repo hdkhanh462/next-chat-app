@@ -1,20 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQueryClient } from "@tanstack/react-query";
-import {
-  CheckIcon,
-  Loader2,
-  MessageSquarePlusIcon,
-  User,
-  XIcon,
-} from "lucide-react";
+import { CheckIcon, Loader2, MessageSquarePlusIcon, XIcon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { createConversationAction } from "@/actions/conversation.action";
+import AvartarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
 import SearchInput from "@/components/search-input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -55,7 +49,6 @@ export default function SearchFriendDialog() {
   const [query, setQuery] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<SelectedUser[]>([]);
   const { data: friends, isLoading, setKeyword } = useSearchUserFriendsQuery();
-  const queryClient = useQueryClient();
   const { execute: createConversation, isExecuting: conversationCreating } =
     useAction(createConversationAction, {
       onSuccess({ data }) {
@@ -85,7 +78,6 @@ export default function SearchFriendDialog() {
   const handleSelectUser = (user: SelectedUser) => {
     const isSelected = find(selectedUsers, { id: user.id });
     if (isSelected) {
-      // Deselect user
       setSelectedUsers((prev) => prev.filter((u) => u.id !== user.id));
       form.setValue(
         "to",
@@ -93,7 +85,6 @@ export default function SearchFriendDialog() {
         { shouldDirty: true }
       );
     } else if (selectedUsers.length < 5) {
-      // Select user
       setSelectedUsers((prev) => [...prev, user]);
       form.setValue("to", [...form.getValues("to"), user.id], {
         shouldDirty: true,
@@ -179,7 +170,10 @@ export default function SearchFriendDialog() {
                         onSelect={() => handleSelectUser(user)}
                       >
                         <div className="flex gap-2 items-center">
-                          <User />
+                          <AvartarWithIndicator
+                            image={user.image}
+                            alt={user.name}
+                          />
                           <span>{user.name}</span>
                         </div>
                         <div className="flex gap-2 items-center ml-auto">

@@ -28,10 +28,7 @@ type Props = {
 
 export default function ConversationFooter({ conversationId }: Props) {
   const { execute, isExecuting } = useAction(createMessageAction, {
-    onSuccess() {
-      form.reset();
-    },
-    onError({ error }) {
+    onError: ({ error }) => {
       console.log("Create conversation error:", error);
       toast.error("Failed to send message, please try again");
     },
@@ -50,6 +47,7 @@ export default function ConversationFooter({ conversationId }: Props) {
       ...values,
       content: values.content.trim(),
     });
+    form.reset();
   }
 
   return (
@@ -73,6 +71,7 @@ export default function ConversationFooter({ conversationId }: Props) {
                   <Textarea
                     placeholder="Type your message here"
                     className="resize-none min-h-10"
+                    disabled={isExecuting}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();

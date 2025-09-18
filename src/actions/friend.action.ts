@@ -21,9 +21,7 @@ export const sendFriendRequestAction = authActionClient
           { requesterId: addresseeId, addresseeId: currentUserId },
         ],
       },
-      orderBy: {
-        requesterId: "asc",
-      },
+      orderBy: { requesterId: "asc" },
     });
 
     if (existing) {
@@ -64,7 +62,23 @@ export const sendFriendRequestAction = authActionClient
               message: "Resend request successfully",
             };
           }
-          break;
+          await prisma.$transaction([
+            prisma.friendship.delete({
+              where: {
+                id: existing.id,
+              },
+            }),
+            prisma.friendship.create({
+              data: {
+                requesterId: currentUserId,
+                addresseeId,
+                status: "PENDING",
+              },
+            }),
+          ]);
+          return {
+            message: "Send request successfully",
+          };
       }
     }
 
@@ -189,9 +203,7 @@ export const unfriendAction = authActionClient
           { requesterId: friendId, addresseeId: currentUserId },
         ],
       },
-      orderBy: {
-        requesterId: "asc",
-      },
+      orderBy: { requesterId: "asc" },
     });
 
     if (!friendship) {

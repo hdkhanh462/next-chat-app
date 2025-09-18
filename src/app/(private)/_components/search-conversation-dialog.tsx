@@ -24,10 +24,10 @@ export default function SearchConversationDialog() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const { data: currentUser } = useUserQuery();
+  const { data: currentUser, isFetching: isFetchingUser } = useUserQuery();
   const {
     data: conversations,
-    isFetching,
+    isFetching: isFetchingConvs,
     setFilter,
   } = useUserConvsQuery({
     keyword: "",
@@ -45,7 +45,7 @@ export default function SearchConversationDialog() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  if (isFetching)
+  if (isFetchingUser)
     return <SearchInputKbd placeholder="Search conversations..." disabled />;
 
   return (
@@ -75,7 +75,7 @@ export default function SearchConversationDialog() {
 
         <CommandList className="max-h-72 min-h-20">
           <CommandGroup heading="Search results">
-            {!isFetching && conversations && conversations.length > 0 ? (
+            {!isFetchingConvs && conversations && conversations.length > 0 ? (
               conversations.map((conversation) => (
                 <ConversationCommandItem
                   key={conversation.id}
@@ -87,7 +87,7 @@ export default function SearchConversationDialog() {
                   }}
                 />
               ))
-            ) : isFetching ? (
+            ) : isFetchingConvs ? (
               <CommandLoading>
                 <span className="text-muted-foreground">Loading...</span>
               </CommandLoading>
