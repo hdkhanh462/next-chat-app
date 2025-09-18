@@ -83,7 +83,7 @@ export default function UserDropdownContent({
           await authClient.signOut({
             fetchOptions: {
               onSuccess: () => {
-                queryClient.removeQueries({ queryKey: ["user"] });
+                queryClient.clear();
                 router.push(AUTH_PATH.LOGIN);
               },
             },

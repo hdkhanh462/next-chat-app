@@ -2,33 +2,51 @@ import { betterFetch } from "@better-fetch/fetch";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { ConversationWithStatusDTO } from "@/types/conversation.type";
+import { FullConversationDTO } from "@/types/conversation.type";
+import { ConversationFilterInput } from "@/schemas/conversation.schema";
+import { find } from "lodash";
 
-export function useUserConversationsQuery(initialKeyword?: string) {
-  const [keyword, setKeyword] = useState<string | undefined>(initialKeyword);
+export function useUserConvsQuery(initialFilter?: ConversationFilterInput) {
+  const [filter, setFilter] = useState<ConversationFilterInput | undefined>(
+    initialFilter
+  );
 
   const query = useQuery({
-    queryKey: ["conversations", keyword],
+    queryKey: ["conversations", filter],
     queryFn: async () => {
-      if (keyword === undefined) {
-        // No keyword, fetch all conversations
-        const result = await betterFetch<ConversationWithStatusDTO[]>(
+      if (filter?.keyword === undefined || filter.keyword === null) {
+        const result = await betterFetch<FullConversationDTO[]>(
           "/api/conversations"
         );
         return result.data || [];
       }
 
-      // If keyword is too short, return no results
-      if (keyword.length < 2) return null;
+      if (filter.keyword.length < 2) return null;
 
-      // Fetch conversations matching the keyword
-      const result = await betterFetch<ConversationWithStatusDTO[]>(
-        "/api/conversations?keyword=" + keyword
+      const params = new URLSearchParams();
+      if (filter.keyword) params.append("keyword", filter.keyword);
+      if (filter?.since) params.append("since", filter.since.toISOString());
+      if (filter?.after) params.append("after", filter.after.toISOString());
+
+      const result = await betterFetch<FullConversationDTO[]>(
+        "/api/conversations?" + params.toString()
       );
       return result.data || [];
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  return { ...query, keyword, setKeyword };
+  return { ...query, filter, setFilter };
+}
+
+export function extractConvDetails(conv: FullConversationDTO, userId: string) {
+  let displayName = conv.name;
+  let displayImage: string | null = conv.image ?? null;
+
+  if (!conv.isGroup) {
+    const other = find(conv.members, (m) => m.id !== userId);
+    displayName = other?.name || "Unknown";
+    displayImage = other?.image || null;
+  }
+  return { displayName, displayImage };
 }

@@ -12,25 +12,61 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useUserQuery } from "@/data/hooks/user";
-import { MessageWithSenderDTO } from "@/types/message.type";
+import { FullMessageDTO, MessageWithSenderDTO } from "@/types/message.type";
 import { cn } from "@/utils/shadcn";
+import { pusherClient } from "@/lib/pusher/client";
+import { find } from "lodash";
 
 type Props = {
   conversationId: string;
-  initial: MessageWithSenderDTO[];
+  initial: FullMessageDTO[];
 };
 
 export default function ConversationBody({ initial, conversationId }: Props) {
   const ref = useRef<HTMLDivElement>(null);
-  const [messages, setMessages] = useState<MessageWithSenderDTO[]>(initial);
-  const [isMounted, setIsMounted] = useState(false);
+  const [messages, setMessages] = useState<FullMessageDTO[]>(initial);
   const { execute: seenMessageExecute } = useAction(seenMessage);
 
   useEffect(() => {
-    if (isMounted) return;
-    setIsMounted(true);
     seenMessageExecute({ conversationId });
-  }, [isMounted, conversationId, seenMessageExecute]);
+  }, [conversationId, seenMessageExecute]);
+
+  useEffect(() => {
+    ref.current?.scrollIntoView();
+
+    pusherClient.subscribe(conversationId);
+    console.log("Subscribed to channel:", conversationId);
+
+    const newMessageHandler = (msg: MessageWithSenderDTO) => {
+      console.log("Message: New message received:", msg);
+      seenMessageExecute({ conversationId });
+      setMessages((prev) =>
+        find(prev, { id: msg.id })
+          ? prev
+          : [
+              ...prev,
+              {
+                ...msg,
+                seenBy: [],
+              },
+            ]
+      );
+    };
+
+    const UpdateMessageHandler = (msg: FullMessageDTO) => {
+      console.log("Message: Message updated:", msg);
+      setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
+    };
+
+    pusherClient.bind("message:new", newMessageHandler);
+    pusherClient.bind("message:update", UpdateMessageHandler);
+
+    return () => {
+      pusherClient.unbind("message:new", newMessageHandler);
+      pusherClient.unbind("message:update", UpdateMessageHandler);
+      pusherClient.unsubscribe(conversationId);
+    };
+  }, [conversationId, seenMessageExecute]);
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -49,8 +85,8 @@ export default function ConversationBody({ initial, conversationId }: Props) {
 
 type MessageItemProps = {
   isLast?: boolean;
-  message: MessageWithSenderDTO;
-  prevMessage?: MessageWithSenderDTO;
+  message: FullMessageDTO;
+  prevMessage?: FullMessageDTO;
 };
 
 function MessageItem({ isLast, message, prevMessage }: MessageItemProps) {

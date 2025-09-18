@@ -6,7 +6,7 @@ export const createMessageSchema = z.object({
     .string()
     .min(1, "Content is required")
     .max(500, "Content must be at most 500 characters"),
-  images: z.array(z.url()),
+  images: z.array(z.url()).max(4),
 });
 
 export type CreateMessageInput = z.infer<typeof createMessageSchema>;

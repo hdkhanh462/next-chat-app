@@ -43,6 +43,7 @@ import {
   CreateConversationInput,
   createConversationSchema,
 } from "@/schemas/conversation.schema";
+import { find } from "lodash";
 
 type SelectedUser = {
   id: string;
@@ -58,16 +59,13 @@ export default function SearchFriendDialog() {
   const { execute: createConversation, isExecuting: conversationCreating } =
     useAction(createConversationAction, {
       onSuccess({ data }) {
-        console.log(data);
         setOpen(false);
         setSelectedUsers([]);
         setQuery("");
-        queryClient.invalidateQueries({ queryKey: ["conversations"] });
         form.reset();
         toast.success(data.message);
       },
       onError({ error }) {
-        console.log("Create conversation error:", error);
         if (error.validationErrors?._errors)
           toast.error(error.validationErrors?._errors[0]);
       },
@@ -81,12 +79,11 @@ export default function SearchFriendDialog() {
   });
 
   function onSubmit(values: CreateConversationInput) {
-    console.log(values);
     createConversation(values);
   }
 
   const handleSelectUser = (user: SelectedUser) => {
-    const isSelected = selectedUsers.find((u) => u.id === user.id);
+    const isSelected = find(selectedUsers, { id: user.id });
     if (isSelected) {
       // Deselect user
       setSelectedUsers((prev) => prev.filter((u) => u.id !== user.id));
@@ -186,7 +183,7 @@ export default function SearchFriendDialog() {
                           <span>{user.name}</span>
                         </div>
                         <div className="flex gap-2 items-center ml-auto">
-                          {selectedUsers.find((u) => u.id === user.id) && (
+                          {find(selectedUsers, { id: user.id }) && (
                             <CheckIcon className="text-primary" />
                           )}
                         </div>

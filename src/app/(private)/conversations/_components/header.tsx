@@ -8,14 +8,24 @@ import OnlineIndicator from "@/app/(private)/_components/online-indicator";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ConversationDTO } from "@/types/conversation.type";
+import { extractConvDetails } from "@/data/hooks/conversation";
+import { useUserQuery } from "@/data/hooks/user";
+import { FullConversationDTO } from "@/types/conversation.type";
 
 type Props = {
-  initial: ConversationDTO;
+  initial: FullConversationDTO;
 };
 
 export default function ConversationHeader({ initial }: Props) {
+  const { data: currentUser } = useUserQuery();
   const [onlineMembers, setOnlineMembers] = useState(1);
+
+  if (!currentUser) return null;
+
+  const { displayName, displayImage } = extractConvDetails(
+    initial,
+    currentUser.id
+  );
 
   return (
     <header className="bg-background sticky top-0 flex shrink-0 items-center gap-2 border-b p-4">
@@ -27,11 +37,11 @@ export default function ConversationHeader({ initial }: Props) {
       <div className="flex items-center gap-2">
         <AvartarWithIndicator
           className="size-12"
-          image={initial.image}
-          alt={initial.name}
+          image={displayImage}
+          alt={displayName}
         />
         <div>
-          <h1 className="text-lg font-semibold leading-none">{initial.name}</h1>
+          <h1 className="text-lg font-semibold leading-none">{displayName}</h1>
           <div className="flex gap-1 items-center text-sm text-muted-foreground">
             <OnlineIndicator online={onlineMembers > 0} />
             <span>{onlineMembers.toString().padStart(2, "0")} online</span>

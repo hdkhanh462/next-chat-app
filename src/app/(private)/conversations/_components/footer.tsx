@@ -1,8 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import { HiPaperAirplane, HiPhoto } from "react-icons/hi2";
+import { toast } from "sonner";
 
 import { createMessageAction } from "@/actions/message.action";
 import { Button } from "@/components/ui/button";
@@ -19,8 +21,6 @@ import {
   CreateMessageInput,
   createMessageSchema,
 } from "@/schemas/message.schema";
-import { useAction } from "next-safe-action/hooks";
-import { toast } from "sonner";
 
 type Props = {
   conversationId: string;
@@ -39,14 +39,13 @@ export default function ConversationFooter({ conversationId }: Props) {
   const form = useForm<CreateMessageInput>({
     resolver: zodResolver(createMessageSchema),
     defaultValues: {
-      conversationId: conversationId,
+      conversationId,
       content: "",
       images: [],
     },
   });
 
   function onSubmit(values: CreateMessageInput) {
-    console.log(values);
     execute({
       ...values,
       content: values.content.trim(),
@@ -74,6 +73,12 @@ export default function ConversationFooter({ conversationId }: Props) {
                   <Textarea
                     placeholder="Type your message here"
                     className="resize-none min-h-10"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        form.handleSubmit(onSubmit)();
+                      }
+                    }}
                     {...field}
                   />
                 </FormControl>

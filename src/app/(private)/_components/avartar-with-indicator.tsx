@@ -1,7 +1,8 @@
+import { UserIcon } from "lucide-react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/utils/shadcn";
-import { UserIcon } from "lucide-react";
 
 type Props = {
   alt: string | null;
@@ -28,12 +29,12 @@ export default function AvartarWithIndicator({
           <UserIcon className={cn("size-4", fallbackClassName)} />
         </AvatarFallback>
       </Avatar>
-      {notifications && notifications > 0 && (
+      {notifications !== undefined && notifications > 0 && (
         <Badge
           variant="destructive"
           className="border-background rounded-full absolute -top-1.5 right-full min-w-5 translate-x-3.5 px-1"
         >
-          {notifications}
+          {notifications > 9 ? "9+" : notifications}
         </Badge>
       )}
 

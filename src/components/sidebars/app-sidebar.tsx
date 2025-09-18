@@ -1,6 +1,6 @@
 "use client";
 
-import { Command } from "lucide-react";
+import { MessagesSquareIcon } from "lucide-react";
 import Link from "next/link";
 
 import { NavUser } from "@/components/sidebars/nav-user";
@@ -32,7 +32,7 @@ export function AppSidebar() {
               <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
                 <Link href="/">
                   <div className="flex items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground aspect-square size-8">
-                    <Command className="size-4" />
+                    <MessagesSquareIcon className="size-4" />
                   </div>
                   <div className="grid flex-1 text-sm leading-tight text-left">
                     <span className="font-medium truncate">Acme Inc</span>

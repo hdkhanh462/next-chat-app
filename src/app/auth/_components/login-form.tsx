@@ -7,7 +7,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,15 +29,14 @@ import {
 import { type LoginInput, loginSchema } from "@/schemas/auth.schema";
 
 import SocialAuthSelector from "@/app/auth/_components/social-auth-seletor";
-import { PasswordInput } from "@/components/ui/password-input";
 import VerifyEmailForm from "@/app/auth/_components/verify-email-form";
 import { handleResendClick } from "@/app/auth/_constants/email";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next");
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [isPending, startTransition] = useTransition();
   const [isEmailVerified, setIsEmailVerified] = useState(true);
   const form = useForm<LoginInput>({
@@ -70,10 +68,10 @@ export function LoginForm() {
         });
         return;
       }
-      queryClient.invalidateQueries({ queryKey: ["user"] });
       router.push(
         nextPath?.startsWith("/") ? nextPath : AUTH_PATH.LOGIN_REDIRECT
       );
+      toast("Wellcome back!");
     });
   }
 

@@ -1,9 +1,9 @@
 "use client";
 
-import { User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import AvartarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
 import SearchInputKbd from "@/app/(private)/_components/search-input-kbd";
 import SearchInput from "@/components/search-input";
 import {
@@ -13,17 +13,25 @@ import {
   CommandList,
   CommandLoading,
 } from "@/components/ui/command";
-import { useUserConversationsQuery } from "@/data/hooks/conversation";
+import {
+  extractConvDetails,
+  useUserConvsQuery,
+} from "@/data/hooks/conversation";
+import { useUserQuery } from "@/data/hooks/user";
+import { FullConversationDTO } from "@/types/conversation.type";
 
 export default function SearchConversationDialog() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const { data: currentUser } = useUserQuery();
   const {
     data: conversations,
-    isLoading,
-    setKeyword,
-  } = useUserConversationsQuery("");
+    isFetching,
+    setFilter,
+  } = useUserConvsQuery({
+    keyword: "",
+  });
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -36,6 +44,9 @@ export default function SearchConversationDialog() {
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, []);
+
+  if (isFetching)
+    return <SearchInputKbd placeholder="Search conversations..." disabled />;
 
   return (
     <>
@@ -56,7 +67,7 @@ export default function SearchConversationDialog() {
             if (e.key === "Enter") {
               e.preventDefault();
               if (query.length >= 2) {
-                setKeyword(query);
+                setFilter({ keyword: query });
               }
             }
           }}
@@ -64,22 +75,19 @@ export default function SearchConversationDialog() {
 
         <CommandList className="max-h-72 min-h-20">
           <CommandGroup heading="Search results">
-            {!isLoading && conversations && conversations.length > 0 ? (
+            {!isFetching && conversations && conversations.length > 0 ? (
               conversations.map((conversation) => (
-                <CommandItem
+                <ConversationCommandItem
                   key={conversation.id}
+                  conversation={conversation}
+                  currentUserId={currentUser?.id || ""}
                   onSelect={() => {
                     setOpen(false);
                     router.push(`/conversations/${conversation.id}`);
                   }}
-                >
-                  <div className="flex items-center gap-2">
-                    <User />
-                    <span>{conversation.name}</span>
-                  </div>
-                </CommandItem>
+                />
               ))
-            ) : isLoading ? (
+            ) : isFetching ? (
               <CommandLoading>
                 <span className="text-muted-foreground">Loading...</span>
               </CommandLoading>
@@ -92,5 +100,31 @@ export default function SearchConversationDialog() {
         </CommandList>
       </CommandDialog>
     </>
+  );
+}
+
+type ConversationCommandItemProps = {
+  conversation: FullConversationDTO;
+  currentUserId: string;
+  onSelect: () => void;
+};
+
+function ConversationCommandItem({
+  conversation,
+  currentUserId,
+  onSelect,
+}: ConversationCommandItemProps) {
+  const { displayName, displayImage } = extractConvDetails(
+    conversation,
+    currentUserId
+  );
+
+  return (
+    <CommandItem key={conversation.id} onSelect={onSelect}>
+      <div className="flex items-center gap-2">
+        <AvartarWithIndicator image={displayImage} alt={displayName} />
+        <span>{displayName}</span>
+      </div>
+    </CommandItem>
   );
 }

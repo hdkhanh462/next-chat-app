@@ -5,7 +5,6 @@ import {
   getConversationById,
   getConversationMessages,
 } from "@/data/conversation";
-import { getUserCached } from "@/data/user";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -13,17 +12,16 @@ type PageProps = {
 
 export default async function Page({ params }: PageProps) {
   const { id: convId } = await params;
-  const user = await getUserCached();
-  const conv = await getConversationById(user.id, convId);
-  const messages = await getConversationMessages(user.id, convId, null);
+  const conv = await getConversationById(convId);
+  const messages = await getConversationMessages(convId, null);
 
-  if (!conv) return <div>Conversation not found</div>;
+  if (!conv) return null;
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden max-h-dvh">
       <ConversationHeader initial={conv} />
-      <ConversationBody initial={messages} conversationId={convId} />
-      <ConversationFooter conversationId={convId} />
+      <ConversationBody initial={messages} conversationId={conv.id} />
+      <ConversationFooter conversationId={conv.id} />
     </div>
   );
 }
