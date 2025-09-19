@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-import { getMessagesNew } from "@/data/message";
+import { getMessages } from "@/data/message";
 import { messageQueryParamsSchema } from "@/schemas/message.schema";
 
 export async function GET(
@@ -16,6 +16,6 @@ export async function GET(
   if (!parsedParams.success)
     return Response.json("Invalid query params", { status: 400 });
 
-  const result = await getMessagesNew(id, parsedParams.data);
+  const result = await getMessages(id, parsedParams.data);
   return Response.json(result);
 }

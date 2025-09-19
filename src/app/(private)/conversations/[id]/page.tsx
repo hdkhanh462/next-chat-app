@@ -10,7 +10,6 @@ type PageProps = {
 export default async function Page({ params }: PageProps) {
   const { id: convId } = await params;
   const conv = await getConversationById(convId);
-  // const messages = await getMessages(convId, null);
 
   if (!conv) return null;
 

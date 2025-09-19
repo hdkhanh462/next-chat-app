@@ -1,6 +1,8 @@
 "use client";
 
+import { InfiniteData, useQueryClient } from "@tanstack/react-query";
 import { compareAsc, differenceInMinutes, format, isSameDay } from "date-fns";
+import { Loader2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import {
   useCallback,
@@ -27,12 +29,9 @@ import {
   MessageWithSenderDTO,
 } from "@/types/message.type";
 import { cn } from "@/utils/shadcn";
-import { InfiniteData, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
 
 type Props = {
   conversationId: string;
-  // initial: FullMessageDTO[];
 };
 
 export default function ConversationBody({ conversationId }: Props) {
@@ -119,9 +118,9 @@ export default function ConversationBody({ conversationId }: Props) {
       );
 
       if (msg.sender.id === currentUser?.id) {
-        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-        // requestAnimationFrame(() => {
-        // });
+        requestAnimationFrame(() => {
+          bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        });
       }
     };
 
