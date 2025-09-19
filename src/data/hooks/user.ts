@@ -29,7 +29,7 @@ export function useSearchUsersQuery() {
       if (!keyword || keyword.length < 2) return null;
 
       const users = await betterFetch<UserWithFriendShipStatus[]>(
-        "/api/users?keyword=" + keyword
+        "/api/chat-app/users?keyword=" + keyword
       );
       return users.data || [];
     },
@@ -48,7 +48,7 @@ export function useSearchUserFriendsQuery() {
       if (!keyword || keyword.length < 2) return null;
 
       const friends = await betterFetch<UserDTO[]>(
-        "/api/friends?keyword=" + keyword
+        "/api/chat-app/friends?keyword=" + keyword
       );
       return friends.data || [];
     },

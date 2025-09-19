@@ -16,7 +16,7 @@ export function useUserConvsQuery(initialFilter?: ConversationFilterInput) {
     queryFn: async () => {
       if (filter?.keyword === undefined || filter.keyword === null) {
         const result = await betterFetch<FullConversationDTO[]>(
-          "/api/conversations"
+          "/api/chat-app/conversations"
         );
         return result.data || [];
       }
@@ -29,7 +29,7 @@ export function useUserConvsQuery(initialFilter?: ConversationFilterInput) {
       if (filter?.after) params.append("after", filter.after.toISOString());
 
       const result = await betterFetch<FullConversationDTO[]>(
-        "/api/conversations?" + params.toString()
+        "/api/chat-app/conversations?" + params.toString()
       );
       return result.data || [];
     },

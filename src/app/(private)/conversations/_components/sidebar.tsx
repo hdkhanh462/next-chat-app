@@ -36,10 +36,8 @@ export default function ConversationSidebar() {
     if (!currentUser) return;
 
     pusherClient.subscribe(currentUser.id);
-    console.log("Subscribed to channel:", currentUser.id);
 
     const newConvHandler = (conv: ConversationWithMembersDTO) => {
-      console.log("Conversation: New conversation received:", conv);
       queryCLient.setQueryData(
         ["conversations", null],
         (prev: FullConversationDTO[]) =>
@@ -56,7 +54,6 @@ export default function ConversationSidebar() {
     };
 
     const newMessageHandler = (msg: MessageWithSenderDTO) => {
-      console.log("Conversation: New message received:", msg);
       queryCLient.setQueryData(
         ["conversations", null],
         (prev: FullConversationDTO[]) =>
@@ -72,7 +69,6 @@ export default function ConversationSidebar() {
     };
 
     const updateMessageHandler = (msg: FullMessageDTO) => {
-      console.log("Conversation: Message updated:", msg);
       queryCLient.setQueryData(
         ["conversations", null],
         (prev: FullConversationDTO[]) =>
