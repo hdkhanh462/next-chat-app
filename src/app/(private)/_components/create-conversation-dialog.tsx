@@ -98,7 +98,12 @@ export default function SearchFriendDialog() {
     <>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+          <Button
+            className="hover:cursor-pointer"
+            variant="ghost"
+            size="icon"
+            onClick={() => setOpen(true)}
+          >
             <span className="sr-only">New conversation</span>
             <MessageSquarePlusIcon />
           </Button>

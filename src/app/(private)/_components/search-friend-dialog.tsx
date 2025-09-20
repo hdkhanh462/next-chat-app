@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useSearchUsersQuery } from "@/data/hooks/user";
 import { FriendShipStatus } from "@/types/user.type";
+import { QUERY_KEYS } from "@/constants/query-keys";
 
 export default function SearchFriendDialog() {
   const [open, setOpen] = useState(false);
@@ -50,7 +51,12 @@ export default function SearchFriendDialog() {
     <>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+          <Button
+            className="hover:cursor-pointer"
+            variant="ghost"
+            size="icon"
+            onClick={() => setOpen(true)}
+          >
             <span className="sr-only">New friend</span>
             <TbUsersPlus />
           </Button>
@@ -137,14 +143,14 @@ export default function SearchFriendDialog() {
                         onActionSuccess={(message) => {
                           toast.success(message);
                           queryClient.invalidateQueries({
-                            queryKey: ["users"],
+                            queryKey: [QUERY_KEYS.USER.OTHER],
                             type: "active",
                           });
                         }}
                         onActionError={(messages) => {
                           if (messages) toast.error(messages[0]);
                           queryClient.invalidateQueries({
-                            queryKey: ["users"],
+                            queryKey: [QUERY_KEYS.USER.OTHER],
                             type: "active",
                           });
                         }}

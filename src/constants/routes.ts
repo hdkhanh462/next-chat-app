@@ -21,3 +21,9 @@ export const ACCOUNT_PATH = {
     NOTIFICATIONS: "/account/settings/notifications",
   },
 } as const;
+
+export const CHAT_API_PATH = {
+  CONVERSATIONS: "/api/chat-app/conversations",
+  FRIENDS: "/api/chat-app/friends",
+  USERS: "/api/chat-app/users",
+} as const;

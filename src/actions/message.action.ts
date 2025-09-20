@@ -8,6 +8,10 @@ import { prisma } from "@/lib/prisma";
 import { pusher } from "@/lib/pusher/server";
 import { authActionClient } from "@/lib/safe-action";
 import { createMessageSchema } from "@/schemas/message.schema";
+import {
+  CONVERSATIONS_CHANNEL,
+  MESSAGES_CHANNEL,
+} from "@/constants/pusher-events";
 
 export const createMessageAction = authActionClient
   .inputSchema(createMessageSchema)
@@ -48,10 +52,18 @@ export const createMessageAction = authActionClient
       );
 
       await Promise.all([
-        pusher.trigger(conversationId, "message:new", newMessageDto),
-        ...existingConv.memberIds.map((memberId) =>
-          pusher.trigger(memberId, "conversation:new-message", newMessageDto)
+        pusher.trigger(
+          conversationId,
+          MESSAGES_CHANNEL.BASE + MESSAGES_CHANNEL.NEW,
+          newMessageDto
         ),
+        ...existingConv.memberIds.map((memberId) => {
+          pusher.trigger(
+            `private-user-${memberId}`,
+            CONVERSATIONS_CHANNEL.BASE + CONVERSATIONS_CHANNEL.MESSAGE.NEW,
+            newMessageDto
+          );
+        }),
       ]);
 
       return {
@@ -121,10 +133,14 @@ export const seenMessage = authActionClient
         ["updatedAt", "senderId", "seenByIds"]
       );
 
-      await pusher.trigger(conversationId, "message:update", updatedMessageDto);
       await pusher.trigger(
-        currentUserId,
-        "conversation:update-message",
+        conversationId,
+        MESSAGES_CHANNEL.BASE + MESSAGES_CHANNEL.UPDATE,
+        updatedMessageDto
+      );
+      await pusher.trigger(
+        `private-user-${currentUserId}`,
+        CONVERSATIONS_CHANNEL.BASE + CONVERSATIONS_CHANNEL.MESSAGE.UPDATE,
         updatedMessageDto
       );
 

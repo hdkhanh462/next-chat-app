@@ -19,15 +19,13 @@ export default function VerifyEmailForm({
   initialStep,
 }: Props) {
   const handleSubmit = async (values: VerifyEmailInput) => {
-    console.log("Final submitted data:", values);
-
     const { error } = await authClient.emailOtp.verifyEmail({
       email: values.email,
       otp: values.otp,
     });
 
     if (error) {
-      console.log("Error verifying email:", error);
+      console.error("Error verifying email:", error);
     }
   };
 

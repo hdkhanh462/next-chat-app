@@ -29,7 +29,7 @@ type Props = {
 export default function ConversationFooter({ conversationId }: Props) {
   const { execute, isExecuting } = useAction(createMessageAction, {
     onError: ({ error }) => {
-      console.log("Create conversation error:", error);
+      console.error("Create conversation error:", error);
       toast.error("Failed to send message, please try again");
     },
   });
@@ -52,7 +52,12 @@ export default function ConversationFooter({ conversationId }: Props) {
 
   return (
     <div className="border-t p-4 flex items-center gap-2 w-full">
-      <Button type="button" variant="ghost" size="icon">
+      <Button
+        className="hover:cursor-pointer"
+        type="button"
+        variant="ghost"
+        size="icon"
+      >
         <HiPhoto className="size-6" />
       </Button>
 
@@ -88,7 +93,7 @@ export default function ConversationFooter({ conversationId }: Props) {
           <Button
             type="submit"
             size="icon"
-            className="rounded-full"
+            className="rounded-full hover:cursor-pointer"
             disabled={!form.formState.isDirty || isExecuting}
           >
             <HiPaperAirplane className="size-5" />

@@ -1,6 +1,7 @@
+import { PropsWithChildren } from "react";
+
 import { AppSidebar } from "@/components/sidebars/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { PropsWithChildren } from "react";
 
 export default function Layout({ children }: PropsWithChildren) {
   return (

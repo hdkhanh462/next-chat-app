@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { pusher } from "@/lib/pusher/server";
 import { authActionClient } from "@/lib/safe-action";
 import { createConversationSchema } from "@/schemas/conversation.schema";
+import { CONVERSATIONS_CHANNEL } from "@/constants/pusher-events";
 
 export const createConversationAction = authActionClient
   .inputSchema(createConversationSchema)
@@ -70,7 +71,11 @@ export const createConversationAction = authActionClient
 
       await Promise.all(
         newConvDTO.members.map((m) =>
-          pusher.trigger(m.id, "conversation:new", newConvDTO)
+          pusher.trigger(
+            `private-user-${m.id}`,
+            CONVERSATIONS_CHANNEL.BASE + CONVERSATIONS_CHANNEL.NEW,
+            newConvDTO
+          )
         )
       );
 

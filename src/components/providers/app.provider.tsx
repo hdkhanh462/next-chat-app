@@ -11,6 +11,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 });
@@ -25,7 +26,7 @@ export default function AppProvider({ children }: PropsWithChildren) {
     >
       <QueryClientProvider client={queryClient}>
         {children}
-        <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-right" />
+        <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-left" />
       </QueryClientProvider>
       <Toaster richColors duration={3000} />
     </ThemeProvider>

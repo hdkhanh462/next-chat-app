@@ -1,9 +1,7 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
-import { useEffect } from "react";
 
 import AvartarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
 import PageSidebarHeader from "@/app/(private)/_components/page-sidebar-header";
@@ -19,89 +17,11 @@ import {
   useUserConvsQuery,
 } from "@/data/hooks/conversation";
 import { useUserQuery } from "@/data/hooks/user";
-import { pusherClient } from "@/lib/pusher/client";
-import {
-  ConversationWithMembersDTO,
-  FullConversationDTO,
-} from "@/types/conversation.type";
-import { FullMessageDTO, MessageWithSenderDTO } from "@/types/message.type";
+import { FullConversationDTO } from "@/types/conversation.type";
 import { cn } from "@/utils/shadcn";
-import { omit } from "lodash";
 
 export default function ConversationSidebar() {
   const { data: currentUser } = useUserQuery();
-  const queryCLient = useQueryClient();
-
-  useEffect(() => {
-    if (!currentUser) return;
-
-    pusherClient.subscribe(currentUser.id);
-
-    const newConvHandler = (conv: ConversationWithMembersDTO) => {
-      queryCLient.setQueryData(
-        ["conversations", null],
-        (prev: FullConversationDTO[]) =>
-          prev.find((c) => c.id === conv.id)
-            ? prev
-            : [
-                {
-                  ...conv,
-                  messages: [],
-                },
-                ...prev,
-              ]
-      );
-    };
-
-    const newMessageHandler = (msg: MessageWithSenderDTO) => {
-      queryCLient.setQueryData(
-        ["conversations", null],
-        (prev: FullConversationDTO[]) =>
-          prev.map((conv) =>
-            conv.id === msg.conversationId
-              ? {
-                  ...conv,
-                  messages: [msg],
-                }
-              : conv
-          )
-      );
-    };
-
-    const updateMessageHandler = (msg: FullMessageDTO) => {
-      queryCLient.setQueryData(
-        ["conversations", null],
-        (prev: FullConversationDTO[]) =>
-          prev.map((conv) =>
-            conv.id === msg.conversationId
-              ? {
-                  ...conv,
-                  messages: [
-                    omit(
-                      {
-                        ...msg,
-                        seenByIds: msg.seenBy.map((u) => u.id),
-                      },
-                      "seenBy"
-                    ),
-                  ],
-                }
-              : conv
-          )
-      );
-    };
-
-    pusherClient.bind("conversation:new", newConvHandler);
-    pusherClient.bind("conversation:new-message", newMessageHandler);
-    pusherClient.bind("conversation:update-message", updateMessageHandler);
-
-    return () => {
-      pusherClient.unbind("conversation:new", newConvHandler);
-      pusherClient.unbind("conversation:new-message", newMessageHandler);
-      pusherClient.unbind("conversation:update-message", updateMessageHandler);
-      pusherClient.unsubscribe(currentUser.id);
-    };
-  }, [currentUser, queryCLient]);
 
   return (
     <Sidebar collapsible="offcanvas">

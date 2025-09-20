@@ -29,6 +29,8 @@ import {
   MessageWithSenderDTO,
 } from "@/types/message.type";
 import { cn } from "@/utils/shadcn";
+import { QUERY_KEYS } from "@/constants/query-keys";
+import { MESSAGES_CHANNEL } from "@/constants/pusher-events";
 
 type Props = {
   conversationId: string;
@@ -76,13 +78,11 @@ export default function ConversationBody({ conversationId }: Props) {
     seenMessageExecute({ conversationId });
   }, [conversationId, seenMessageExecute]);
 
-  useEffect(() => {
-    pusherClient.subscribe(conversationId);
-
-    const newMessageHandler = (msg: MessageWithSenderDTO) => {
+  const newMessageHandler = useCallback(
+    (msg: MessageWithSenderDTO) => {
       seenMessageExecute({ conversationId });
       queryClient.setQueryData(
-        ["conversation", conversationId, "messages"],
+        [QUERY_KEYS.CONVERSATIONS, conversationId, QUERY_KEYS.MESSAGES],
         (prev?: InfiniteData<FullMessagesWithCursorDTO>) => {
           if (!prev) {
             return {
@@ -122,11 +122,14 @@ export default function ConversationBody({ conversationId }: Props) {
           bottomRef.current?.scrollIntoView({ behavior: "smooth" });
         });
       }
-    };
+    },
+    [conversationId, currentUser, queryClient, seenMessageExecute]
+  );
 
-    const updateMessageHandler = (msg: FullMessageDTO) => {
+  const updateMessageHandler = useCallback(
+    (msg: FullMessageDTO) => {
       queryClient.setQueryData(
-        ["conversation", conversationId, "messages"],
+        [QUERY_KEYS.CONVERSATIONS, conversationId, QUERY_KEYS.MESSAGES],
         (prev?: InfiniteData<FullMessagesWithCursorDTO>) => {
           if (!prev) return prev;
 
@@ -139,17 +142,34 @@ export default function ConversationBody({ conversationId }: Props) {
           };
         }
       );
-    };
+    },
+    [conversationId, queryClient]
+  );
 
-    pusherClient.bind("message:new", newMessageHandler);
-    pusherClient.bind("message:update", updateMessageHandler);
+  useEffect(() => {
+    const channel = pusherClient.subscribe(conversationId);
+
+    channel.bind(
+      MESSAGES_CHANNEL.BASE + MESSAGES_CHANNEL.NEW,
+      newMessageHandler
+    );
+    channel.bind(
+      MESSAGES_CHANNEL.BASE + MESSAGES_CHANNEL.UPDATE,
+      updateMessageHandler
+    );
 
     return () => {
-      pusherClient.unbind("message:new", newMessageHandler);
-      pusherClient.unbind("message:update", updateMessageHandler);
+      channel.unbind(
+        MESSAGES_CHANNEL.BASE + MESSAGES_CHANNEL.NEW,
+        newMessageHandler
+      );
+      channel.unbind(
+        MESSAGES_CHANNEL.BASE + MESSAGES_CHANNEL.UPDATE,
+        updateMessageHandler
+      );
       pusherClient.unsubscribe(conversationId);
     };
-  }, [conversationId, queryClient, currentUser, seenMessageExecute]);
+  }, [conversationId, newMessageHandler, updateMessageHandler]);
 
   const handleFetchNextPage = useCallback(async () => {
     if (!scrollableRef.current) {
