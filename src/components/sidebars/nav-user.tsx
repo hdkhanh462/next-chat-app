@@ -15,11 +15,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import UserDropdownContent from "@/components/user-dropdown-content";
 import { useUserQuery } from "@/data/hooks/user";
-import { useNotificationChannel } from "@/lib/pusher/use-notification-channel";
 
 export function NavUser() {
   const { data: currentUser, isLoading } = useUserQuery();
-  useNotificationChannel(currentUser?.id);
 
   if (isLoading) return <NavUserFallback />;
 

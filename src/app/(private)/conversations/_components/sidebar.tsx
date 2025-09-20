@@ -2,6 +2,7 @@
 
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
+import { useMemo } from "react";
 
 import AvartarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
 import PageSidebarHeader from "@/app/(private)/_components/page-sidebar-header";
@@ -17,6 +18,7 @@ import {
   useUserConvsQuery,
 } from "@/data/hooks/conversation";
 import { useUserQuery } from "@/data/hooks/user";
+import { usePresenceStore } from "@/lib/zustand/use-presence-store";
 import { FullConversationDTO } from "@/types/conversation.type";
 import { cn } from "@/utils/shadcn";
 
@@ -82,17 +84,49 @@ function ConversationItem({
   conversation,
   currentUserId,
 }: ConversationItemProps) {
-  const { displayName, displayImage } = extractConvDetails(
-    conversation,
-    currentUserId
-  );
-  const lastMessage = conversation.messages.at(0);
-  const formatedDate =
-    lastMessage && formatDistanceToNow(new Date(lastMessage.createdAt));
-  const isRead = lastMessage?.seenByIds.some(
-    (userId) => userId === currentUserId
-  );
-  const isOwnMessage = lastMessage?.sender.id === currentUserId;
+  const onlineUserIds = usePresenceStore((state) => state.onlineUserIds);
+  const {
+    displayName,
+    displayImage,
+    lastMessageContent,
+    formattedDate,
+    isRead,
+    isOwnMessage,
+    isOnline,
+  } = useMemo(() => {
+    const { displayName, displayImage } = extractConvDetails(
+      conversation,
+      currentUserId
+    );
+
+    const lastMessage = conversation.messages.at(0);
+
+    const formattedDate =
+      lastMessage && formatDistanceToNow(new Date(lastMessage.createdAt));
+
+    const isRead = !!lastMessage?.seenByIds.includes(currentUserId);
+    const isOwnMessage = lastMessage?.sender.id === currentUserId;
+
+    const lastMessageContent = lastMessage?.content
+      ? isOwnMessage
+        ? `You: ${lastMessage.content}`
+        : `${lastMessage.sender.name}: ${lastMessage.content}`
+      : "Started a conversation";
+
+    const isOnline = conversation.members.some(
+      (m) => onlineUserIds.includes(m.id) && m.id !== currentUserId
+    );
+
+    return {
+      displayName,
+      displayImage,
+      lastMessageContent,
+      formattedDate,
+      isRead,
+      isOwnMessage,
+      isOnline,
+    };
+  }, [conversation, currentUserId, onlineUserIds]);
 
   return (
     <Link
@@ -104,35 +138,33 @@ function ConversationItem({
         className="size-10"
         image={displayImage}
         alt={displayName}
-        online={false}
+        online={isOnline}
       />
       <div className="w-full">
         <div className="flex items-center w-full gap-2">
           <span className="font-medium line-clamp-1 w-[50%] whitespace-break-spaces">
             {displayName}
           </span>{" "}
-          {formatedDate && (
+          {formattedDate && (
             <span
               className={cn(
-                "ml-auto text-xs to-primary",
-                (isRead || isOwnMessage) && "text-muted-foreground"
+                "ml-auto text-xs",
+                isRead || isOwnMessage
+                  ? "text-muted-foreground"
+                  : "text-primary"
               )}
             >
-              {formatedDate}
+              {formattedDate}
             </span>
           )}
         </div>
         <span
           className={cn(
-            "line-clamp-1 w-[260px] text-sm whitespace-break-spaces text-primary",
-            (isRead || isOwnMessage) && "text-muted-foreground"
+            "line-clamp-1 w-[260px] text-sm whitespace-break-spaces",
+            isRead || isOwnMessage ? "text-muted-foreground" : "text-primary"
           )}
         >
-          {lastMessage?.content
-            ? isOwnMessage
-              ? `You: ${lastMessage.content}`
-              : `${lastMessage.sender.name}: ${lastMessage.content}`
-            : "Started a conversation"}
+          {lastMessageContent}
         </span>
       </div>
     </Link>

@@ -1,10 +1,11 @@
 model Conversation {
-    id        String   @id @default(auto()) @map("_id") @db.ObjectId
-    name      String?
-    isGroup   Boolean  @default(false)
-    image     String?
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
+    id            String   @id @default(auto()) @map("_id") @db.ObjectId
+    name          String?
+    isGroup       Boolean  @default(false)
+    image         String?
+    lastMessageAt DateTime @default(now())
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @default(now()) @updatedAt
 
     memberIds String[] @db.ObjectId
 

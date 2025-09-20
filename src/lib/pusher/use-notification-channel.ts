@@ -7,16 +7,17 @@ import { Channel } from "pusher-js";
 import { useCallback, useEffect, useRef } from "react";
 
 import newMessageToast from "@/components/toasts/new-message";
+import { CONVERSATIONS_CHANNEL } from "@/constants/pusher-events";
+import { QUERY_KEYS } from "@/constants/query-keys";
 import { pusherClient } from "@/lib/pusher/client";
 import {
   ConversationWithMembersDTO,
   FullConversationDTO,
 } from "@/types/conversation.type";
 import { FullMessageDTO, MessageWithSenderDTO } from "@/types/message.type";
-import { QUERY_KEYS } from "@/constants/query-keys";
-import { CONVERSATIONS_CHANNEL } from "@/constants/pusher-events";
+import { compareDesc } from "date-fns";
 
-export const useNotificationChannel = (userId?: string) => {
+export default function useNotificationChannel(userId?: string) {
   const channelRef = useRef<Channel | null>(null);
   const pathname = usePathname();
   const queryCLient = useQueryClient();
@@ -25,18 +26,26 @@ export const useNotificationChannel = (userId?: string) => {
     (msg: MessageWithSenderDTO) => {
       queryCLient.setQueryData(
         [QUERY_KEYS.CONVERSATIONS, null],
-        (prev?: FullConversationDTO[]) =>
-          (prev ?? []).map((conv) =>
+        (prev?: FullConversationDTO[]) => {
+          if (!prev) return [];
+
+          const updated = prev.map((conv) =>
             conv.id === msg.conversationId
               ? {
                   ...conv,
                   messages: [msg],
+                  lastMessageAt: msg.createdAt,
                 }
               : conv
-          )
+          );
+
+          return [...updated].sort((a, b) =>
+            compareDesc(new Date(a.lastMessageAt), new Date(b.lastMessageAt))
+          );
+        }
       );
-      if (pathname === `/conversations/${msg.conversationId}`) {
-      } else {
+
+      if (pathname !== `/conversations/${msg.conversationId}`) {
         newMessageToast(msg);
       }
     },
@@ -122,4 +131,4 @@ export const useNotificationChannel = (userId?: string) => {
       }
     };
   }, [userId, newMessageHandler, newConversationHandler, updateMessageHandler]);
-};
+}

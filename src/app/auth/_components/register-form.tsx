@@ -57,6 +57,7 @@ export function RegisterForm() {
         return;
       }
       router.push(AUTH_PATH.LOGIN);
+      toast.success("Account created successfully");
     });
   }
 

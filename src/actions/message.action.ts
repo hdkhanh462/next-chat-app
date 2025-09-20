@@ -33,14 +33,23 @@ export const createMessageAction = authActionClient
         });
       }
 
-      const newMessage = await prisma.message.create({
-        data: {
-          conversationId,
-          senderId: currentUserId,
-          content,
-          images,
-        },
-        include: { sender: true },
+      const newMessage = await prisma.$transaction(async (tx) => {
+        const newMessage = await tx.message.create({
+          data: {
+            conversationId,
+            senderId: currentUserId,
+            content,
+            images,
+          },
+          include: { sender: true },
+        });
+
+        await prisma.conversation.update({
+          where: { id: conversationId },
+          data: { lastMessageAt: newMessage.createdAt },
+        });
+
+        return newMessage;
       });
 
       const newMessageDto = omit(

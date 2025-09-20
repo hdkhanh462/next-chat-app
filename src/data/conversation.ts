@@ -10,7 +10,7 @@ export async function getConversations(filter?: ConversationFilterInput) {
   const user = await getUserCached();
   const conversations = await prisma.conversation.findMany({
     take: 10,
-    orderBy: { updatedAt: "desc" },
+    orderBy: { lastMessageAt: "desc" },
     where: {
       members: { some: { id: user.id } },
       ...(filter?.since ? { updatedAt: { lt: filter.since } } : {}),
