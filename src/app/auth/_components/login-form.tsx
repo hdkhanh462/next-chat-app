@@ -71,7 +71,7 @@ export function LoginForm() {
       router.push(
         nextPath?.startsWith("/") ? nextPath : AUTH_PATH.LOGIN_REDIRECT
       );
-      toast("Wellcome back!");
+      toast("👋 Wellcome back!");
     });
   }
 

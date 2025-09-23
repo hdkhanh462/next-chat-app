@@ -11,3 +11,8 @@ export type FullMessageDTO = Omit<MessageDTO, "senderId" | "seenByIds"> & {
   sender: UserDTO;
   seenBy: UserDTO[];
 };
+
+export type FullMessagesWithCursorDTO = {
+  messages: FullMessageDTO[];
+  nextCursor: string | null;
+};

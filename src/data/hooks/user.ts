@@ -4,8 +4,10 @@ import { betterFetch } from "@better-fetch/fetch";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { QUERY_KEYS } from "@/constants/query-keys";
+import { CHAT_API_PATH } from "@/constants/routes";
 import { authClient } from "@/lib/auth/client";
-import { UserDTO, UserWithFriendShipStatus } from "@/types/user.type";
+import { UserWithFriendShipStatus } from "@/types/user.type";
 
 export async function getUser() {
   const { data } = await authClient.getSession();
@@ -14,7 +16,7 @@ export async function getUser() {
 
 export function useUserQuery() {
   return useQuery({
-    queryKey: ["user"],
+    queryKey: [QUERY_KEYS.USER.CURRENT],
     queryFn: getUser,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -24,33 +26,14 @@ export function useSearchUsersQuery() {
   const [keyword, setKeyword] = useState("");
 
   const query = useQuery({
-    queryKey: ["users", keyword],
+    queryKey: [QUERY_KEYS.USER.OTHER, keyword],
     queryFn: async () => {
       if (!keyword || keyword.length < 2) return null;
 
       const users = await betterFetch<UserWithFriendShipStatus[]>(
-        "/api/users?keyword=" + keyword
+        CHAT_API_PATH.USERS + "?keyword=" + keyword
       );
       return users.data || [];
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-
-  return { ...query, keyword, setKeyword };
-}
-
-export function useSearchUserFriendsQuery() {
-  const [keyword, setKeyword] = useState("");
-
-  const query = useQuery({
-    queryKey: ["friends", keyword],
-    queryFn: async () => {
-      if (!keyword || keyword.length < 2) return null;
-
-      const friends = await betterFetch<UserDTO[]>(
-        "/api/friends?keyword=" + keyword
-      );
-      return friends.data || [];
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });

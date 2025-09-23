@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { ReactNode, useState } from "react";
 import {
   ControllerRenderProps,
@@ -75,7 +75,6 @@ export function MultipleStepForm<TMainSchema>({
   className,
   children,
   onSubmit,
-  stepHeader,
   stepIndicator,
 }: MultipleStepFormProps<TMainSchema>) {
   const [step, setStep] = useState(initialStep ?? 0);
@@ -120,8 +119,7 @@ export function MultipleStepForm<TMainSchema>({
         if (onSubmit) {
           const parsed = schema.safeParse(updatedData);
           if (!parsed.success) {
-            // Handle final validation errors if needed
-            console.log("Final validation errors:", parsed.error.message);
+            console.error("Final validation errors:", parsed.error.message);
             setIsSubmitting(false);
             return;
           }

@@ -1,10 +1,12 @@
 import { betterFetch } from "@better-fetch/fetch";
 import { useQuery } from "@tanstack/react-query";
+import { find } from "lodash";
 import { useState } from "react";
 
-import { FullConversationDTO } from "@/types/conversation.type";
 import { ConversationFilterInput } from "@/schemas/conversation.schema";
-import { find } from "lodash";
+import { FullConversationDTO } from "@/types/conversation.type";
+import { QUERY_KEYS } from "@/constants/query-keys";
+import { CHAT_API_PATH } from "@/constants/routes";
 
 export function useUserConvsQuery(initialFilter?: ConversationFilterInput) {
   const [filter, setFilter] = useState<ConversationFilterInput | undefined>(
@@ -12,11 +14,11 @@ export function useUserConvsQuery(initialFilter?: ConversationFilterInput) {
   );
 
   const query = useQuery({
-    queryKey: ["conversations", filter],
+    queryKey: [QUERY_KEYS.CONVERSATIONS, filter],
     queryFn: async () => {
       if (filter?.keyword === undefined || filter.keyword === null) {
         const result = await betterFetch<FullConversationDTO[]>(
-          "/api/conversations"
+          CHAT_API_PATH.CONVERSATIONS
         );
         return result.data || [];
       }
@@ -29,7 +31,7 @@ export function useUserConvsQuery(initialFilter?: ConversationFilterInput) {
       if (filter?.after) params.append("after", filter.after.toISOString());
 
       const result = await betterFetch<FullConversationDTO[]>(
-        "/api/conversations?" + params.toString()
+        CHAT_API_PATH.CONVERSATIONS + "?" + params.toString()
       );
       return result.data || [];
     },

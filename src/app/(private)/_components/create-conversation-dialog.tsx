@@ -1,20 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQueryClient } from "@tanstack/react-query";
-import {
-  CheckIcon,
-  Loader2,
-  MessageSquarePlusIcon,
-  User,
-  XIcon,
-} from "lucide-react";
+import { find } from "lodash";
+import { CheckIcon, Loader2, MessageSquarePlusIcon, XIcon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { createConversationAction } from "@/actions/conversation.action";
+import AvatarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
 import SearchInput from "@/components/search-input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,12 +33,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useSearchUserFriendsQuery } from "@/data/hooks/user";
+import { useFriends } from "@/data/hooks/friend";
 import {
   CreateConversationInput,
   createConversationSchema,
 } from "@/schemas/conversation.schema";
-import { find } from "lodash";
 
 type SelectedUser = {
   id: string;
@@ -54,8 +48,11 @@ export default function SearchFriendDialog() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<SelectedUser[]>([]);
-  const { data: friends, isLoading, setKeyword } = useSearchUserFriendsQuery();
-  const queryClient = useQueryClient();
+  const {
+    data,
+    isFetching: isFetchingFriends,
+    setParams,
+  } = useFriends({ limit: 20, keyword: "" });
   const { execute: createConversation, isExecuting: conversationCreating } =
     useAction(createConversationAction, {
       onSuccess({ data }) {
@@ -71,6 +68,11 @@ export default function SearchFriendDialog() {
       },
     });
 
+  const friends = useMemo(
+    () => (data?.pages ? data.pages.flatMap((page) => page.users ?? []) : []),
+    [data]
+  );
+
   const form = useForm<CreateConversationInput>({
     resolver: zodResolver(createConversationSchema),
     defaultValues: {
@@ -85,7 +87,6 @@ export default function SearchFriendDialog() {
   const handleSelectUser = (user: SelectedUser) => {
     const isSelected = find(selectedUsers, { id: user.id });
     if (isSelected) {
-      // Deselect user
       setSelectedUsers((prev) => prev.filter((u) => u.id !== user.id));
       form.setValue(
         "to",
@@ -93,7 +94,6 @@ export default function SearchFriendDialog() {
         { shouldDirty: true }
       );
     } else if (selectedUsers.length < 5) {
-      // Select user
       setSelectedUsers((prev) => [...prev, user]);
       form.setValue("to", [...form.getValues("to"), user.id], {
         shouldDirty: true,
@@ -107,7 +107,12 @@ export default function SearchFriendDialog() {
     <>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+          <Button
+            className="hover:cursor-pointer"
+            variant="ghost"
+            size="icon"
+            onClick={() => setOpen(true)}
+          >
             <span className="sr-only">New conversation</span>
             <MessageSquarePlusIcon />
           </Button>
@@ -135,7 +140,7 @@ export default function SearchFriendDialog() {
                 if (e.key === "Enter") {
                   e.preventDefault();
                   if (query.length >= 2) {
-                    setKeyword(query);
+                    setParams((prev) => ({ ...prev, keyword: query }));
                   }
                 }
               }}
@@ -163,7 +168,7 @@ export default function SearchFriendDialog() {
                   </CommandItem>
                 )}
               </CommandGroup>
-              {isLoading && (
+              {isFetchingFriends && (
                 <CommandGroup heading="Search results" className="!px-0">
                   <CommandLoading>
                     <span className="text-muted-foreground">Loading...</span>
@@ -179,7 +184,10 @@ export default function SearchFriendDialog() {
                         onSelect={() => handleSelectUser(user)}
                       >
                         <div className="flex gap-2 items-center">
-                          <User />
+                          <AvatarWithIndicator
+                            image={user.image}
+                            alt={user.name}
+                          />
                           <span>{user.name}</span>
                         </div>
                         <div className="flex gap-2 items-center ml-auto">
@@ -200,6 +208,7 @@ export default function SearchFriendDialog() {
           </Command>
           <DialogFooter>
             <Button
+              className="hover:cursor-pointer"
               disabled={!form.formState.isDirty || conversationCreating}
               onClick={() => form.handleSubmit(onSubmit)()}
             >

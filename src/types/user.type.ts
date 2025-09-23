@@ -10,6 +10,11 @@ export type FriendShipStatus = {
   direction: RequestDirection;
 };
 
+export type UsersWithCursorDTO = {
+  users: UserDTO[];
+  nextCursor: string | null;
+};
+
 export type UserWithFriendShipStatus = UserDTO & {
   friendShip?: FriendShipStatus;
 };

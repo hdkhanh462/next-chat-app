@@ -13,7 +13,7 @@ type Props = {
   notifications?: number;
 };
 
-export default function AvartarWithIndicator({
+export default function AvatarWithIndicator({
   image,
   alt,
   className,
@@ -38,7 +38,7 @@ export default function AvartarWithIndicator({
         </Badge>
       )}
 
-      {online !== undefined ? (
+      {/* {online !== undefined ? (
         online ? (
           <span className="border-sidebar absolute -end-0.5 -bottom-0.5 size-3 rounded-full border-2 bg-emerald-500">
             <span className="sr-only">Online</span>
@@ -48,7 +48,12 @@ export default function AvartarWithIndicator({
             <span className="sr-only">Offline</span>
           </span>
         )
-      ) : null}
+      ) : null} */}
+      {online && (
+        <span className="border-sidebar absolute -end-0.5 -bottom-0.5 size-3 rounded-full border-2 bg-emerald-500">
+          <span className="sr-only">Online</span>
+        </span>
+      )}
     </div>
   );
 }

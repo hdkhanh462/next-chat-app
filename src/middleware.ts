@@ -5,7 +5,14 @@ import { AUTH_PATH } from "@/constants/routes";
 import { auth } from "@/lib/auth/server";
 import { isMatchingRoute } from "@/utils/routes";
 
-const PUBLIC_ROUTES = ["/", "/auth/*", "/api/auth/*", "/.well-known/*"];
+const PUBLIC_ROUTES = [
+  "/",
+  "/auth/*",
+  "/api/auth/*",
+  "/api/chat-app/*",
+  "/api/pusher/auth",
+  "/.well-known/*",
+];
 
 export async function middleware(request: NextRequest) {
   // Check if the request is for a public route

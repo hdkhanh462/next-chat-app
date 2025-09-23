@@ -1,5 +1,4 @@
 import { REGEXP_ONLY_DIGITS } from "input-otp";
-import z from "zod";
 
 import ResendCountdown from "@/app/auth/_components/resend-countdown";
 import { FormControl } from "@/components/ui/form";
@@ -11,6 +10,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { StepConfig } from "@/components/ui/multiple-step-form";
+import { authClient } from "@/lib/auth/client";
 import {
   EmailFormInput,
   emailSchema,
@@ -18,11 +18,8 @@ import {
   otpSchema,
   VerifyEmailInput,
 } from "@/schemas/email.schema";
-import { authClient } from "@/lib/auth/client";
 
 export const handleResendClick = async (values: EmailFormInput) => {
-  console.log("Resending OTP to:", values.email);
-
   const { error } = await authClient.emailOtp.sendVerificationOtp({
     email: values.email,
     type: "email-verification",

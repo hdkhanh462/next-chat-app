@@ -1,10 +1,11 @@
 model Conversation {
-    id        String   @id @default(auto()) @map("_id") @db.ObjectId
-    name      String?
-    isGroup   Boolean  @default(false)
-    image     String?
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
+    id            String   @id @default(auto()) @map("_id") @db.ObjectId
+    name          String?
+    isGroup       Boolean  @default(false)
+    image         String?
+    lastMessageAt DateTime @default(now())
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @default(now()) @updatedAt
 
     memberIds String[] @db.ObjectId
 
@@ -41,6 +42,7 @@ enum RequestStatus {
 model Friendship {
     id        String        @id @default(auto()) @map("_id") @db.ObjectId
     status    RequestStatus
+    keyPair   String
     createdAt DateTime      @default(now())
     updatedAt DateTime      @default(now()) @updatedAt
 
@@ -50,7 +52,7 @@ model Friendship {
     requester User @relation("UserSentRequests", fields: [requesterId], references: [id], onDelete: Cascade)
     addressee User @relation("UserReceivedRequests", fields: [addresseeId], references: [id], onDelete: Cascade)
 
-    @@unique([requesterId, addresseeId])
+    @@unique([keyPair])
     @@index([status])
     @@map("friendships")
 }

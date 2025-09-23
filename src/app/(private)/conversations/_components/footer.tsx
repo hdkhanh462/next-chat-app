@@ -28,11 +28,8 @@ type Props = {
 
 export default function ConversationFooter({ conversationId }: Props) {
   const { execute, isExecuting } = useAction(createMessageAction, {
-    onSuccess() {
-      form.reset();
-    },
-    onError({ error }) {
-      console.log("Create conversation error:", error);
+    onError: ({ error }) => {
+      console.error("Create conversation error:", error);
       toast.error("Failed to send message, please try again");
     },
   });
@@ -50,11 +47,17 @@ export default function ConversationFooter({ conversationId }: Props) {
       ...values,
       content: values.content.trim(),
     });
+    form.reset();
   }
 
   return (
     <div className="border-t p-4 flex items-center gap-2 w-full">
-      <Button type="button" variant="ghost" size="icon">
+      <Button
+        className="hover:cursor-pointer"
+        type="button"
+        variant="ghost"
+        size="icon"
+      >
         <HiPhoto className="size-6" />
       </Button>
 
@@ -73,6 +76,7 @@ export default function ConversationFooter({ conversationId }: Props) {
                   <Textarea
                     placeholder="Type your message here"
                     className="resize-none min-h-10"
+                    disabled={isExecuting}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -89,7 +93,7 @@ export default function ConversationFooter({ conversationId }: Props) {
           <Button
             type="submit"
             size="icon"
-            className="rounded-full"
+            className="rounded-full hover:cursor-pointer"
             disabled={!form.formState.isDirty || isExecuting}
           >
             <HiPaperAirplane className="size-5" />

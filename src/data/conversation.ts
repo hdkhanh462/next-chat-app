@@ -10,7 +10,7 @@ export async function getConversations(filter?: ConversationFilterInput) {
   const user = await getUserCached();
   const conversations = await prisma.conversation.findMany({
     take: 10,
-    orderBy: { updatedAt: "desc" },
+    orderBy: { lastMessageAt: "desc" },
     where: {
       members: { some: { id: user.id } },
       ...(filter?.since ? { updatedAt: { lt: filter.since } } : {}),
@@ -72,7 +72,7 @@ export async function getConversationById(conversationId: string) {
     },
     include: {
       members: true,
-      messages: true,
+      messages: { include: { sender: true } },
     },
   });
 
@@ -83,44 +83,17 @@ export async function getConversationById(conversationId: string) {
       ...conv,
       members: conv.members.map((m) => pick(m, ["id", "name", "image"])),
       messages: conv.messages.map((msg) =>
-        omit(msg, ["updatedAt", "seenByIds"])
+        omit(
+          {
+            ...msg,
+            sender: pick(msg.sender, ["id", "name", "image"]),
+          },
+          ["updatedAt", "senderId"]
+        )
       ),
     },
     ["createdAt", "updatedAt", "memberIds"]
   );
 
   return convDto;
-}
-
-export async function getConversationMessages(
-  conversationId: string,
-  cursor: string | null // id of the lastest message from current loaded messages
-) {
-  const user = await getUserCached();
-  const messages = await prisma.message.findMany({
-    where: {
-      conversationId,
-      conversation: { members: { some: { id: user.id } } },
-    },
-    take: 20,
-    skip: cursor ? 1 : 0, // skip the message that matches the cursor
-    cursor: cursor ? { id: cursor } : undefined,
-    orderBy: { createdAt: "asc" },
-    include: {
-      sender: true,
-      seenBy: true,
-    },
-  });
-
-  const messagesDto = messages.map((msg) =>
-    omit(
-      {
-        ...msg,
-        sender: pick(msg.sender, ["id", "name", "image"]),
-        seenBy: msg.seenBy.map((s) => pick(s, ["id", "name", "image"])),
-      },
-      ["updatedAt", "seenByIds"]
-    )
-  );
-  return messagesDto;
 }

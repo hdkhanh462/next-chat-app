@@ -3,7 +3,7 @@
 import { PanelRightIcon } from "lucide-react";
 import { useState } from "react";
 
-import AvartarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
+import AvatarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
 import OnlineIndicator from "@/app/(private)/_components/online-indicator";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -29,13 +29,13 @@ export default function ConversationHeader({ initial }: Props) {
 
   return (
     <header className="bg-background sticky top-0 flex shrink-0 items-center gap-2 border-b p-4">
-      <SidebarTrigger className="-ml-1" />
+      <SidebarTrigger className="-ml-1 hover:cursor-pointer" />
       <Separator
         orientation="vertical"
         className="mr-2 data-[orientation=vertical]:h-1/2"
       />
       <div className="flex items-center gap-2">
-        <AvartarWithIndicator
+        <AvatarWithIndicator
           className="size-12"
           image={displayImage}
           alt={displayName}
@@ -48,7 +48,11 @@ export default function ConversationHeader({ initial }: Props) {
           </div>
         </div>
       </div>
-      <Button variant="ghost" size="icon" className="ml-auto size-7">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="ml-auto size-7 hover:cursor-pointer"
+      >
         <PanelRightIcon />
         <span className="sr-only">Conversation info</span>
       </Button>

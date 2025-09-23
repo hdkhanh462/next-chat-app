@@ -1,6 +1,6 @@
 {
   "name": "next-chat-app",
-  "version": "0.1.1",
+  "version": "0.1.8",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -66,12 +66,15 @@
     "react-dom": "19.1.0",
     "react-hook-form": "^7.62.0",
     "react-icons": "^5.5.0",
+    "react-intersection-observer": "^9.16.0",
     "react-resizable-panels": "^3.0.5",
     "recharts": "2.15.4",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
+    "uuid": "^13.0.0",
     "vaul": "^1.1.2",
-    "zod": "^4.1.5"
+    "zod": "^4.1.5",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -84,7 +87,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
-    "prisma": "^6.15.0",
+    "prisma": "^6.16.2",
     "tailwindcss": "^4",
     "tsx": "^4.20.5",
     "tw-animate-css": "^1.3.7",

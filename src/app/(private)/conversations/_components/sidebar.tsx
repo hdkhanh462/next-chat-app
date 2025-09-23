@@ -1,11 +1,10 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useMemo } from "react";
 
-import AvartarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
+import AvatarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
 import PageSidebarHeader from "@/app/(private)/_components/page-sidebar-header";
 import {
   Sidebar,
@@ -19,93 +18,12 @@ import {
   useUserConvsQuery,
 } from "@/data/hooks/conversation";
 import { useUserQuery } from "@/data/hooks/user";
-import { pusherClient } from "@/lib/pusher/client";
-import {
-  ConversationWithMembersDTO,
-  FullConversationDTO,
-} from "@/types/conversation.type";
-import { FullMessageDTO, MessageWithSenderDTO } from "@/types/message.type";
+import { usePresenceStore } from "@/lib/zustand/use-presence-store";
+import { FullConversationDTO } from "@/types/conversation.type";
 import { cn } from "@/utils/shadcn";
-import { omit } from "lodash";
 
 export default function ConversationSidebar() {
   const { data: currentUser } = useUserQuery();
-  const queryCLient = useQueryClient();
-
-  useEffect(() => {
-    if (!currentUser) return;
-
-    pusherClient.subscribe(currentUser.id);
-    console.log("Subscribed to channel:", currentUser.id);
-
-    const newConvHandler = (conv: ConversationWithMembersDTO) => {
-      console.log("Conversation: New conversation received:", conv);
-      queryCLient.setQueryData(
-        ["conversations", null],
-        (prev: FullConversationDTO[]) =>
-          prev.find((c) => c.id === conv.id)
-            ? prev
-            : [
-                {
-                  ...conv,
-                  messages: [],
-                },
-                ...prev,
-              ]
-      );
-    };
-
-    const newMessageHandler = (msg: MessageWithSenderDTO) => {
-      console.log("Conversation: New message received:", msg);
-      queryCLient.setQueryData(
-        ["conversations", null],
-        (prev: FullConversationDTO[]) =>
-          prev.map((conv) =>
-            conv.id === msg.conversationId
-              ? {
-                  ...conv,
-                  messages: [msg],
-                }
-              : conv
-          )
-      );
-    };
-
-    const updateMessageHandler = (msg: FullMessageDTO) => {
-      console.log("Conversation: Message updated:", msg);
-      queryCLient.setQueryData(
-        ["conversations", null],
-        (prev: FullConversationDTO[]) =>
-          prev.map((conv) =>
-            conv.id === msg.conversationId
-              ? {
-                  ...conv,
-                  messages: [
-                    omit(
-                      {
-                        ...msg,
-                        seenByIds: msg.seenBy.map((u) => u.id),
-                      },
-                      "seenBy"
-                    ),
-                  ],
-                }
-              : conv
-          )
-      );
-    };
-
-    pusherClient.bind("conversation:new", newConvHandler);
-    pusherClient.bind("conversation:new-message", newMessageHandler);
-    pusherClient.bind("conversation:update-message", updateMessageHandler);
-
-    return () => {
-      pusherClient.unbind("conversation:new", newConvHandler);
-      pusherClient.unbind("conversation:new-message", newMessageHandler);
-      pusherClient.unbind("conversation:update-message", updateMessageHandler);
-      pusherClient.unsubscribe(currentUser.id);
-    };
-  }, [currentUser, queryCLient]);
 
   return (
     <Sidebar collapsible="offcanvas">
@@ -166,17 +84,49 @@ function ConversationItem({
   conversation,
   currentUserId,
 }: ConversationItemProps) {
-  const { displayName, displayImage } = extractConvDetails(
-    conversation,
-    currentUserId
-  );
-  const lastMessage = conversation.messages.at(0);
-  const formatedDate =
-    lastMessage && formatDistanceToNow(new Date(lastMessage.createdAt));
-  const isRead = lastMessage?.seenByIds.some(
-    (userId) => userId === currentUserId
-  );
-  const isOwnMessage = lastMessage?.sender.id === currentUserId;
+  const onlineUserIds = usePresenceStore((state) => state.onlineUserIds);
+  const {
+    displayName,
+    displayImage,
+    lastMessageContent,
+    formattedDate,
+    isRead,
+    isOwnMessage,
+    isOnline,
+  } = useMemo(() => {
+    const { displayName, displayImage } = extractConvDetails(
+      conversation,
+      currentUserId
+    );
+
+    const lastMessage = conversation.messages.at(0);
+
+    const formattedDate =
+      lastMessage && formatDistanceToNow(new Date(lastMessage.createdAt));
+
+    const isRead = !!lastMessage?.seenByIds.includes(currentUserId);
+    const isOwnMessage = lastMessage?.sender.id === currentUserId;
+
+    const lastMessageContent = lastMessage?.content
+      ? isOwnMessage
+        ? `You: ${lastMessage.content}`
+        : `${lastMessage.sender.name}: ${lastMessage.content}`
+      : "Started a conversation";
+
+    const isOnline = conversation.members.some(
+      (m) => onlineUserIds.includes(m.id) && m.id !== currentUserId
+    );
+
+    return {
+      displayName,
+      displayImage,
+      lastMessageContent,
+      formattedDate,
+      isRead,
+      isOwnMessage,
+      isOnline,
+    };
+  }, [conversation, currentUserId, onlineUserIds]);
 
   return (
     <Link
@@ -184,39 +134,37 @@ function ConversationItem({
       key={conversation.id}
       className="flex items-center gap-2 p-4 text-sm leading-tight border-b hover:bg-sidebar-accent hover:text-sidebar-accent-foreground whitespace-nowrap last:border-b-0"
     >
-      <AvartarWithIndicator
+      <AvatarWithIndicator
         className="size-10"
         image={displayImage}
         alt={displayName}
-        online={false}
+        online={isOnline}
       />
       <div className="w-full">
         <div className="flex items-center w-full gap-2">
           <span className="font-medium line-clamp-1 w-[50%] whitespace-break-spaces">
             {displayName}
           </span>{" "}
-          {formatedDate && (
+          {formattedDate && (
             <span
               className={cn(
-                "ml-auto text-xs to-primary",
-                (isRead || isOwnMessage) && "text-muted-foreground"
+                "ml-auto text-xs",
+                isRead || isOwnMessage
+                  ? "text-muted-foreground"
+                  : "text-primary"
               )}
             >
-              {formatedDate}
+              {formattedDate}
             </span>
           )}
         </div>
         <span
           className={cn(
-            "line-clamp-1 w-[260px] text-sm whitespace-break-spaces text-primary",
-            (isRead || isOwnMessage) && "text-muted-foreground"
+            "line-clamp-1 w-[260px] text-sm whitespace-break-spaces",
+            isRead || isOwnMessage ? "text-muted-foreground" : "text-primary"
           )}
         >
-          {lastMessage?.content
-            ? isOwnMessage
-              ? `You: ${lastMessage.content}`
-              : `${lastMessage.sender.name}: ${lastMessage.content}`
-            : "Started a conversation"}
+          {lastMessageContent}
         </span>
       </div>
     </Link>

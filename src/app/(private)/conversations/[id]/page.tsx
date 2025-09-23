@@ -1,10 +1,9 @@
+import { notFound } from "next/navigation";
+
 import ConversationBody from "@/app/(private)/conversations/_components/body";
 import ConversationFooter from "@/app/(private)/conversations/_components/footer";
 import ConversationHeader from "@/app/(private)/conversations/_components/header";
-import {
-  getConversationById,
-  getConversationMessages,
-} from "@/data/conversation";
+import { getConversationById } from "@/data/conversation";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -13,14 +12,13 @@ type PageProps = {
 export default async function Page({ params }: PageProps) {
   const { id: convId } = await params;
   const conv = await getConversationById(convId);
-  const messages = await getConversationMessages(convId, null);
 
-  if (!conv) return null;
+  if (!conv) notFound();
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden max-h-dvh">
       <ConversationHeader initial={conv} />
-      <ConversationBody initial={messages} conversationId={conv.id} />
+      <ConversationBody conversationId={conv.id} />
       <ConversationFooter conversationId={conv.id} />
     </div>
   );

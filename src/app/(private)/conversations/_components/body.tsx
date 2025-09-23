@@ -1,126 +1,243 @@
 "use client";
 
-import { differenceInMinutes, format, isSameDay } from "date-fns";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { InfiniteData, useQueryClient } from "@tanstack/react-query";
+import { compareAsc, differenceInMinutes, format, isSameDay } from "date-fns";
+import { Loader2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from "react";
+import { useInView } from "react-intersection-observer";
 
 import { seenMessage } from "@/actions/message.action";
-import AvartarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
+import AvatarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useMessages } from "@/data/hooks/message";
 import { useUserQuery } from "@/data/hooks/user";
-import { FullMessageDTO, MessageWithSenderDTO } from "@/types/message.type";
-import { cn } from "@/utils/shadcn";
 import { pusherClient } from "@/lib/pusher/client";
-import { find } from "lodash";
+import {
+  FullMessageDTO,
+  FullMessagesWithCursorDTO,
+  MessageWithSenderDTO,
+} from "@/types/message.type";
+import { cn } from "@/utils/shadcn";
+import { QUERY_KEYS } from "@/constants/query-keys";
+import { MESSAGES_CHANNEL } from "@/constants/pusher-events";
 
 type Props = {
   conversationId: string;
-  initial: FullMessageDTO[];
 };
 
-export default function ConversationBody({ initial, conversationId }: Props) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [messages, setMessages] = useState<FullMessageDTO[]>(initial);
+export default function ConversationBody({ conversationId }: Props) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollableRef = useRef<HTMLDivElement | null>(null);
+  const skipInitialRef = useRef(true);
+  const { ref: topRef, inView } = useInView({
+    root: scrollableRef.current ?? undefined,
+    threshold: 0.1,
+    initialInView: false,
+  });
+  const { data: currentUser } = useUserQuery();
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useMessages(conversationId);
   const { execute: seenMessageExecute } = useAction(seenMessage);
+  const queryClient = useQueryClient();
+
+  const messages = useMemo(
+    () =>
+      data?.pages
+        ? data.pages
+            .flatMap((page) => page.messages ?? [])
+            .sort((a, b) =>
+              compareAsc(new Date(a.createdAt), new Date(b.createdAt))
+            )
+        : [],
+    [data]
+  );
+
+  useLayoutEffect(() => {
+    if (!data) return;
+
+    if (skipInitialRef.current) {
+      requestAnimationFrame(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "auto" });
+        skipInitialRef.current = false;
+      });
+    }
+  }, [conversationId, data]);
 
   useEffect(() => {
     seenMessageExecute({ conversationId });
   }, [conversationId, seenMessageExecute]);
 
-  useEffect(() => {
-    ref.current?.scrollIntoView();
-
-    pusherClient.subscribe(conversationId);
-    console.log("Subscribed to channel:", conversationId);
-
-    const newMessageHandler = (msg: MessageWithSenderDTO) => {
-      console.log("Message: New message received:", msg);
+  const newMessageHandler = useCallback(
+    (msg: MessageWithSenderDTO) => {
       seenMessageExecute({ conversationId });
-      setMessages((prev) =>
-        find(prev, { id: msg.id })
-          ? prev
-          : [
-              ...prev,
-              {
-                ...msg,
-                seenBy: [],
-              },
-            ]
+      queryClient.setQueryData(
+        [QUERY_KEYS.CONVERSATIONS, conversationId, QUERY_KEYS.MESSAGES],
+        (prev?: InfiniteData<FullMessagesWithCursorDTO>) => {
+          if (!prev) {
+            return {
+              pages: [
+                {
+                  messages: [{ ...msg, seenBy: [] }],
+                  nextCursor: null,
+                },
+              ],
+              pageParams: [],
+            };
+          }
+
+          const alreadyExists = prev.pages.some((page) =>
+            page.messages.some((m) => m.id === msg.id)
+          );
+          if (alreadyExists) return prev;
+
+          const newPages = [...prev.pages];
+          newPages[newPages.length - 1] = {
+            ...newPages[newPages.length - 1],
+            messages: [
+              ...newPages[newPages.length - 1].messages,
+              { ...msg, seenBy: [] },
+            ],
+          };
+
+          return {
+            ...prev,
+            pages: newPages,
+          };
+        }
       );
-    };
 
-    const UpdateMessageHandler = (msg: FullMessageDTO) => {
-      console.log("Message: Message updated:", msg);
-      setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
-    };
+      if (msg.sender.id === currentUser?.id) {
+        requestAnimationFrame(() => {
+          bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        });
+      }
+    },
+    [conversationId, currentUser, queryClient, seenMessageExecute]
+  );
 
-    pusherClient.bind("message:new", newMessageHandler);
-    pusherClient.bind("message:update", UpdateMessageHandler);
+  const updateMessageHandler = useCallback(
+    (msg: FullMessageDTO) => {
+      queryClient.setQueryData(
+        [QUERY_KEYS.CONVERSATIONS, conversationId, QUERY_KEYS.MESSAGES],
+        (prev?: InfiniteData<FullMessagesWithCursorDTO>) => {
+          if (!prev) return prev;
+
+          return {
+            ...prev,
+            pages: prev.pages.map((page) => ({
+              ...page,
+              messages: page.messages.map((m) => (m.id === msg.id ? msg : m)),
+            })),
+          };
+        }
+      );
+    },
+    [conversationId, queryClient]
+  );
+
+  useEffect(() => {
+    const channel = pusherClient.subscribe(conversationId);
+
+    channel.bind(MESSAGES_CHANNEL.NEW, newMessageHandler);
+    channel.bind(MESSAGES_CHANNEL.UPDATE, updateMessageHandler);
 
     return () => {
-      pusherClient.unbind("message:new", newMessageHandler);
-      pusherClient.unbind("message:update", UpdateMessageHandler);
+      channel.unbind(MESSAGES_CHANNEL.NEW, newMessageHandler);
+      channel.unbind(MESSAGES_CHANNEL.UPDATE, updateMessageHandler);
       pusherClient.unsubscribe(conversationId);
     };
-  }, [conversationId, seenMessageExecute]);
+  }, [conversationId, newMessageHandler, updateMessageHandler]);
+
+  const handleFetchNextPage = useCallback(async () => {
+    if (!scrollableRef.current) {
+      return fetchNextPage();
+    }
+
+    const el = scrollableRef.current;
+    const prevScrollHeight = el.scrollHeight;
+    await fetchNextPage();
+    requestAnimationFrame(() => {
+      const newScrollHeight = el.scrollHeight;
+      el.scrollTop = newScrollHeight - prevScrollHeight + el.scrollTop;
+    });
+  }, [fetchNextPage]);
+
+  useEffect(() => {
+    if (skipInitialRef.current) return;
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      handleFetchNextPage();
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, handleFetchNextPage]);
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div ref={scrollableRef} className="flex-1 overflow-y-auto scroll-smooth">
+      <div ref={topRef} className="pb-24" />
+      {isFetchingNextPage && (
+        <div className="flex justify-center items-center py-2">
+          <Loader2 className="animate-spin" />
+        </div>
+      )}
       {messages.map((message, index) => (
         <MessageItem
           key={message.id}
-          isLast={index === messages.length - 1}
           message={message}
+          currentUserId={currentUser?.id}
+          isLast={index === messages.length - 1}
           prevMessage={index > 0 ? messages[index - 1] : undefined}
         />
       ))}
-      <div ref={ref} className="pt-24"></div>
+      <div ref={bottomRef} className="pt-24" />
     </div>
   );
 }
 
 type MessageItemProps = {
-  isLast?: boolean;
   message: FullMessageDTO;
+  currentUserId?: string;
+  isLast?: boolean;
   prevMessage?: FullMessageDTO;
 };
 
-function MessageItem({ isLast, message, prevMessage }: MessageItemProps) {
-  const { data: currentUser } = useUserQuery();
-  const isOwn = message.sender.id === currentUser?.id;
+function MessageItem({
+  isLast,
+  message,
+  prevMessage,
+  currentUserId,
+}: MessageItemProps) {
+  const isOwn = message.sender.id === currentUserId;
   const seenBy = message.seenBy.filter(
-    (u) => u.id !== currentUser?.id && u.id !== message.sender.id
+    (u) => u.id !== currentUserId && u.id !== message.sender.id
   );
 
   const { showTimestamp, formattedDate } = useMemo(() => {
-    const today = new Date();
     const currentDate = new Date(message.createdAt);
-    const prevMessageDate = prevMessage
-      ? new Date(prevMessage.createdAt)
-      : null;
+    const prevDate = prevMessage ? new Date(prevMessage.createdAt) : null;
     let showTimestamp = true;
-    let isSameDayAsPrev = true;
-    let formattedDate = "";
 
-    if (prevMessageDate) {
-      isSameDayAsPrev = isSameDay(today, prevMessageDate);
-      const sameDay = isSameDay(currentDate, prevMessageDate);
-      const diffMinutes = differenceInMinutes(currentDate, prevMessageDate);
-      if (sameDay && diffMinutes < 5) showTimestamp = false;
+    if (prevDate && isSameDay(currentDate, prevDate)) {
+      const diffMinutes = differenceInMinutes(currentDate, prevDate);
+      if (diffMinutes < 15) showTimestamp = false;
     }
 
-    if (showTimestamp) {
-      formattedDate =
-        isSameDay(today, currentDate) && isSameDayAsPrev
+    return {
+      showTimestamp,
+      formattedDate: showTimestamp
+        ? isSameDay(currentDate, new Date())
           ? format(currentDate, "p")
-          : format(currentDate, "Pp");
-    }
-
-    return { showTimestamp, formattedDate };
+          : format(currentDate, "Pp")
+        : "",
+    };
   }, [message, prevMessage]);
 
   return (
@@ -133,7 +250,7 @@ function MessageItem({ isLast, message, prevMessage }: MessageItemProps) {
       <div className={cn("flex gap-3 px-4 py-2", isOwn && "justify-end")}>
         {!isOwn && (
           <div className="flex items-end">
-            <AvartarWithIndicator
+            <AvatarWithIndicator
               image={message.sender.image}
               alt={message.sender.name || "Sender avartar"}
             />
@@ -161,7 +278,7 @@ function MessageItem({ isLast, message, prevMessage }: MessageItemProps) {
           seenBy.map((sb) => (
             <Tooltip key={sb.id}>
               <TooltipTrigger>
-                <AvartarWithIndicator
+                <AvatarWithIndicator
                   className="size-5"
                   fallbackClassName="size-3.5"
                   image={sb.image}
