@@ -1,13 +1,18 @@
-import { searchFriends } from "@/data/user";
+import { NextRequest } from "next/server";
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const keyword = searchParams.get("keyword");
+import { friendsFilterSchema } from "@/schemas/friend.schema";
+import { getFriends } from "@/data/friend";
 
-  if (!keyword) {
-    return Response.json([]);
+export async function GET(req: NextRequest) {
+  const searchParams = req.nextUrl.searchParams;
+  const parsedParams = friendsFilterSchema.safeParse(
+    Object.fromEntries(searchParams.entries())
+  );
+
+  if (!parsedParams.success) {
+    return Response.json("Invalid query params", { status: 400 });
   }
 
-  const users = await searchFriends(keyword);
-  return Response.json(users);
+  const friends = await getFriends(parsedParams.data);
+  return Response.json(friends);
 }

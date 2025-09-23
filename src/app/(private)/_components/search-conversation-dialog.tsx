@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import AvartarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
+import AvatarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
 import SearchInputKbd from "@/app/(private)/_components/search-input-kbd";
 import SearchInput from "@/components/search-input";
 import {
@@ -122,7 +122,7 @@ function ConversationCommandItem({
   return (
     <CommandItem key={conversation.id} onSelect={onSelect}>
       <div className="flex items-center gap-2">
-        <AvartarWithIndicator image={displayImage} alt={displayName} />
+        <AvatarWithIndicator image={displayImage} alt={displayName} />
         <span>{displayName}</span>
       </div>
     </CommandItem>

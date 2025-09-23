@@ -14,7 +14,7 @@ import {
 import { useInView } from "react-intersection-observer";
 
 import { seenMessage } from "@/actions/message.action";
-import AvartarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
+import AvatarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
 import {
   Tooltip,
   TooltipContent,
@@ -149,24 +149,12 @@ export default function ConversationBody({ conversationId }: Props) {
   useEffect(() => {
     const channel = pusherClient.subscribe(conversationId);
 
-    channel.bind(
-      MESSAGES_CHANNEL.BASE + MESSAGES_CHANNEL.NEW,
-      newMessageHandler
-    );
-    channel.bind(
-      MESSAGES_CHANNEL.BASE + MESSAGES_CHANNEL.UPDATE,
-      updateMessageHandler
-    );
+    channel.bind(MESSAGES_CHANNEL.NEW, newMessageHandler);
+    channel.bind(MESSAGES_CHANNEL.UPDATE, updateMessageHandler);
 
     return () => {
-      channel.unbind(
-        MESSAGES_CHANNEL.BASE + MESSAGES_CHANNEL.NEW,
-        newMessageHandler
-      );
-      channel.unbind(
-        MESSAGES_CHANNEL.BASE + MESSAGES_CHANNEL.UPDATE,
-        updateMessageHandler
-      );
+      channel.unbind(MESSAGES_CHANNEL.NEW, newMessageHandler);
+      channel.unbind(MESSAGES_CHANNEL.UPDATE, updateMessageHandler);
       pusherClient.unsubscribe(conversationId);
     };
   }, [conversationId, newMessageHandler, updateMessageHandler]);
@@ -262,7 +250,7 @@ function MessageItem({
       <div className={cn("flex gap-3 px-4 py-2", isOwn && "justify-end")}>
         {!isOwn && (
           <div className="flex items-end">
-            <AvartarWithIndicator
+            <AvatarWithIndicator
               image={message.sender.image}
               alt={message.sender.name || "Sender avartar"}
             />
@@ -290,7 +278,7 @@ function MessageItem({
           seenBy.map((sb) => (
             <Tooltip key={sb.id}>
               <TooltipTrigger>
-                <AvartarWithIndicator
+                <AvatarWithIndicator
                   className="size-5"
                   fallbackClassName="size-3.5"
                   image={sb.image}

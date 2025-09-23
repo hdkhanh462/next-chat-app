@@ -5,7 +5,7 @@ import { FullMessagesWithCursorDTO } from "@/types/message.type";
 import { QUERY_KEYS } from "@/constants/query-keys";
 import { CHAT_API_PATH } from "@/constants/routes";
 
-async function getMessage(convId: string, cursor?: string) {
+async function getMessages(convId: string, cursor?: string) {
   const params = new URLSearchParams();
   if (cursor) params.append("cursor", cursor);
 
@@ -29,7 +29,7 @@ export function useMessages(convId: string) {
     enabled: !!convId,
     queryKey: [QUERY_KEYS.CONVERSATIONS, convId, QUERY_KEYS.MESSAGES],
     initialPageParam: undefined,
-    queryFn: ({ pageParam }) => getMessage(convId, pageParam),
+    queryFn: ({ pageParam }) => getMessages(convId, pageParam),
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
 }

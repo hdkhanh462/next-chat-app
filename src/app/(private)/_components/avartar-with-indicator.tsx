@@ -13,7 +13,7 @@ type Props = {
   notifications?: number;
 };
 
-export default function AvartarWithIndicator({
+export default function AvatarWithIndicator({
   image,
   alt,
   className,

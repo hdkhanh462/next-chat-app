@@ -5,11 +5,7 @@ import { cache } from "react";
 
 import { auth } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
-import {
-  FriendShipStatus,
-  UserDTO,
-  UserWithFriendShipStatus,
-} from "@/types/user.type";
+import { FriendShipStatus, UserWithFriendShipStatus } from "@/types/user.type";
 
 export const getUserCached = cache(async () => {
   const sessionData = await auth.api.getSession({
@@ -72,41 +68,4 @@ export async function searchUsers(
       friendShip,
     };
   });
-}
-
-export async function searchFriends(keyword: string): Promise<UserDTO[]> {
-  const user = await getUserCached();
-
-  const friends = await prisma.user.findMany({
-    take: 10,
-    where: {
-      id: { not: user.id },
-      OR: [
-        { name: { contains: keyword, mode: "insensitive" } },
-        { email: { equals: keyword, mode: "insensitive" } },
-      ],
-      AND: [
-        {
-          OR: [
-            {
-              sentFriendRequests: {
-                some: { addresseeId: user.id, status: "ACCEPTED" },
-              },
-            },
-            {
-              receivedFriendRequests: {
-                some: { requesterId: user.id, status: "ACCEPTED" },
-              },
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  return friends.map((user) => ({
-    id: user.id,
-    name: user.name,
-    image: user.image,
-  }));
 }

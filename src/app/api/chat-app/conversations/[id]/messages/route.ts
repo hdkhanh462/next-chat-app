@@ -13,8 +13,9 @@ export async function GET(
     Object.fromEntries(searchParams.entries())
   );
 
-  if (!parsedParams.success)
+  if (!parsedParams.success) {
     return Response.json("Invalid query params", { status: 400 });
+  }
 
   const result = await getMessages(id, parsedParams.data);
   return Response.json(result);

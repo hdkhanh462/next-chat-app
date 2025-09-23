@@ -4,7 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { useMemo } from "react";
 
-import AvartarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
+import AvatarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
 import PageSidebarHeader from "@/app/(private)/_components/page-sidebar-header";
 import {
   Sidebar,
@@ -134,7 +134,7 @@ function ConversationItem({
       key={conversation.id}
       className="flex items-center gap-2 p-4 text-sm leading-tight border-b hover:bg-sidebar-accent hover:text-sidebar-accent-foreground whitespace-nowrap last:border-b-0"
     >
-      <AvartarWithIndicator
+      <AvatarWithIndicator
         className="size-10"
         image={displayImage}
         alt={displayName}

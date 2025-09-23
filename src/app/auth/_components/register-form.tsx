@@ -57,7 +57,7 @@ export function RegisterForm() {
         return;
       }
       router.push(AUTH_PATH.LOGIN);
-      toast.success("Account created successfully");
+      toast.success("Account registed successfully");
     });
   }
 
@@ -116,7 +116,11 @@ export function RegisterForm() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <PasswordInput {...field} autoComplete="new-password" />
+                      <PasswordInput
+                        {...field}
+                        placeholder="Enter your password"
+                        autoComplete="new-password"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

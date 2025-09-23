@@ -10,18 +10,16 @@ import {
   sendFriendRequestSchema,
   unfriendSchema,
 } from "@/schemas/friend.schema";
+import { makeKeyPair } from "@/utils/db-helper";
+import { pusher } from "@/lib/pusher/server";
+import { FRIENDS_CHANNEL } from "@/constants/pusher-events";
 
 export const sendFriendRequestAction = authActionClient
   .inputSchema(sendFriendRequestSchema)
-  .action(async ({ parsedInput: { addresseeId }, ctx: { currentUserId } }) => {
-    const existing = await prisma.friendship.findFirst({
-      where: {
-        OR: [
-          { requesterId: currentUserId, addresseeId },
-          { requesterId: addresseeId, addresseeId: currentUserId },
-        ],
-      },
-      orderBy: { requesterId: "asc" },
+  .action(async ({ parsedInput: { addresseeId }, ctx: { currentUser } }) => {
+    const keyPair = makeKeyPair(currentUser.id, addresseeId);
+    const existing = await prisma.friendship.findUnique({
+      where: { keyPair },
     });
 
     if (existing) {
@@ -31,7 +29,7 @@ export const sendFriendRequestAction = authActionClient
             _errors: ["You are already friends"],
           });
         case "PENDING":
-          if (existing.requesterId === currentUserId) {
+          if (existing.requesterId === currentUser.id) {
             const canResend = isBefore(
               addDays(existing.updatedAt, 1),
               new Date()
@@ -45,6 +43,11 @@ export const sendFriendRequestAction = authActionClient
               where: { id: existing.id },
               data: { status: "PENDING" },
             });
+            await pusher.trigger(
+              `private-user-${addresseeId}`,
+              FRIENDS_CHANNEL.NEW,
+              currentUser
+            );
             return {
               message: "Resend request successfully",
             };
@@ -53,29 +56,33 @@ export const sendFriendRequestAction = authActionClient
             _errors: ["This user has already sent you a request"],
           });
         case "REJECTED":
-          if (existing.requesterId === currentUserId) {
+          if (existing.requesterId === currentUser.id) {
             await prisma.friendship.update({
               where: { id: existing.id },
               data: { status: "PENDING" },
             });
+            await pusher.trigger(
+              `private-user-${addresseeId}`,
+              FRIENDS_CHANNEL.NEW,
+              currentUser
+            );
             return {
               message: "Resend request successfully",
             };
           }
-          await prisma.$transaction([
-            prisma.friendship.delete({
-              where: {
-                id: existing.id,
-              },
-            }),
-            prisma.friendship.create({
-              data: {
-                requesterId: currentUserId,
-                addresseeId,
-                status: "PENDING",
-              },
-            }),
-          ]);
+          await prisma.friendship.update({
+            where: { id: existing.id },
+            data: {
+              status: "PENDING",
+              requesterId: currentUser.id,
+              addresseeId,
+            },
+          });
+          await pusher.trigger(
+            `private-user-${addresseeId}`,
+            FRIENDS_CHANNEL.NEW,
+            currentUser
+          );
           return {
             message: "Send request successfully",
           };
@@ -84,11 +91,18 @@ export const sendFriendRequestAction = authActionClient
 
     await prisma.friendship.create({
       data: {
-        requesterId: currentUserId,
+        requesterId: currentUser.id,
         addresseeId,
+        keyPair,
         status: "PENDING",
       },
     });
+
+    await pusher.trigger(
+      `private-user-${addresseeId}`,
+      FRIENDS_CHANNEL.NEW,
+      currentUser
+    );
     return {
       message: "Send request successfully",
     };
@@ -96,7 +110,7 @@ export const sendFriendRequestAction = authActionClient
 
 export const acceptFriendRequestAction = authActionClient
   .inputSchema(friendSchema)
-  .action(async ({ parsedInput: { requestId }, ctx: { currentUserId } }) => {
+  .action(async ({ parsedInput: { requestId }, ctx: { currentUser } }) => {
     const request = await prisma.friendship.findUnique({
       where: { id: requestId },
     });
@@ -107,7 +121,7 @@ export const acceptFriendRequestAction = authActionClient
       });
     }
 
-    if (request.addresseeId !== currentUserId) {
+    if (request.addresseeId !== currentUser.id) {
       return returnValidationErrors(friendSchema, {
         _errors: ["You are not authorized to accept this request"],
       });
@@ -123,13 +137,17 @@ export const acceptFriendRequestAction = authActionClient
       where: { id: requestId },
       data: { status: "ACCEPTED" },
     });
-
+    await pusher.trigger(
+      `private-user-${request.requesterId}`,
+      FRIENDS_CHANNEL.ACCEPT,
+      currentUser
+    );
     return { message: "Friend request accepted successfully" };
   });
 
 export const rejectFriendRequestAction = authActionClient
   .inputSchema(friendSchema)
-  .action(async ({ parsedInput: { requestId }, ctx: { currentUserId } }) => {
+  .action(async ({ parsedInput: { requestId }, ctx: { currentUser } }) => {
     const request = await prisma.friendship.findUnique({
       where: { id: requestId },
     });
@@ -140,7 +158,7 @@ export const rejectFriendRequestAction = authActionClient
       });
     }
 
-    if (request.addresseeId !== currentUserId) {
+    if (request.addresseeId !== currentUser.id) {
       return returnValidationErrors(friendSchema, {
         _errors: ["You are not authorized to reject this request"],
       });
@@ -162,7 +180,7 @@ export const rejectFriendRequestAction = authActionClient
 
 export const cancelFriendRequestAction = authActionClient
   .inputSchema(friendSchema)
-  .action(async ({ parsedInput: { requestId }, ctx: { currentUserId } }) => {
+  .action(async ({ parsedInput: { requestId }, ctx: { currentUser } }) => {
     const request = await prisma.friendship.findUnique({
       where: { id: requestId },
     });
@@ -173,7 +191,7 @@ export const cancelFriendRequestAction = authActionClient
       });
     }
 
-    if (request.requesterId !== currentUserId) {
+    if (request.requesterId !== currentUser.id) {
       return returnValidationErrors(friendSchema, {
         _errors: ["You are not authorized to cancel this request"],
       });
@@ -194,26 +212,22 @@ export const cancelFriendRequestAction = authActionClient
 
 export const unfriendAction = authActionClient
   .inputSchema(unfriendSchema)
-  .action(async ({ parsedInput: { friendId }, ctx: { currentUserId } }) => {
-    const friendship = await prisma.friendship.findFirst({
+  .action(async ({ parsedInput: { friendId }, ctx: { currentUser } }) => {
+    const existing = await prisma.friendship.findUnique({
       where: {
+        keyPair: makeKeyPair(currentUser.id, friendId),
         status: "ACCEPTED",
-        OR: [
-          { requesterId: currentUserId, addresseeId: friendId },
-          { requesterId: friendId, addresseeId: currentUserId },
-        ],
       },
-      orderBy: { requesterId: "asc" },
     });
 
-    if (!friendship) {
+    if (!existing) {
       return returnValidationErrors(unfriendSchema, {
         _errors: ["You are not friends with this user"],
       });
     }
 
     await prisma.friendship.delete({
-      where: { id: friendship.id },
+      where: { id: existing.id },
     });
 
     return { message: "Unfriended successfully" };

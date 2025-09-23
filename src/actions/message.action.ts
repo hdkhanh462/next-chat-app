@@ -18,12 +18,12 @@ export const createMessageAction = authActionClient
   .action(
     async ({
       parsedInput: { conversationId, content, images },
-      ctx: { currentUserId },
+      ctx: { currentUser },
     }) => {
       const existingConv = await prisma.conversation.findUnique({
         where: {
           id: conversationId,
-          members: { some: { id: currentUserId } },
+          members: { some: { id: currentUser.id } },
         },
         include: { members: true },
       });
@@ -37,7 +37,7 @@ export const createMessageAction = authActionClient
         const newMessage = await tx.message.create({
           data: {
             conversationId,
-            senderId: currentUserId,
+            senderId: currentUser.id,
             content,
             images,
           },
@@ -61,15 +61,11 @@ export const createMessageAction = authActionClient
       );
 
       await Promise.all([
-        pusher.trigger(
-          conversationId,
-          MESSAGES_CHANNEL.BASE + MESSAGES_CHANNEL.NEW,
-          newMessageDto
-        ),
+        pusher.trigger(conversationId, MESSAGES_CHANNEL.NEW, newMessageDto),
         ...existingConv.memberIds.map((memberId) => {
           pusher.trigger(
             `private-user-${memberId}`,
-            CONVERSATIONS_CHANNEL.BASE + CONVERSATIONS_CHANNEL.MESSAGE.NEW,
+            CONVERSATIONS_CHANNEL.MESSAGE.NEW,
             newMessageDto
           );
         }),
@@ -88,74 +84,72 @@ const seenMessageSchema = z.object({
 
 export const seenMessage = authActionClient
   .inputSchema(seenMessageSchema)
-  .action(
-    async ({ parsedInput: { conversationId }, ctx: { currentUserId } }) => {
-      const conv = await prisma.conversation.findUnique({
-        where: {
-          id: conversationId,
-          members: { some: { id: currentUserId } },
+  .action(async ({ parsedInput: { conversationId }, ctx: { currentUser } }) => {
+    const conv = await prisma.conversation.findUnique({
+      where: {
+        id: conversationId,
+        members: { some: { id: currentUser.id } },
+      },
+      include: {
+        messages: {
+          take: 1,
+          orderBy: { createdAt: "desc" },
         },
-        include: {
-          messages: {
-            take: 1,
-            orderBy: { createdAt: "desc" },
-          },
-        },
+      },
+    });
+    if (!conv) {
+      return returnValidationErrors(seenMessageSchema, {
+        _errors: ["Conversation not found"],
       });
-      if (!conv) {
-        return returnValidationErrors(seenMessageSchema, {
-          _errors: ["Conversation not found"],
-        });
-      }
-
-      const lastMessage = conv.messages.at(0);
-      if (!lastMessage) {
-        return returnValidationErrors(seenMessageSchema, {
-          _errors: ["Last message not found"],
-        });
-      }
-
-      if (lastMessage.seenByIds.includes(currentUserId)) {
-        return returnValidationErrors(seenMessageSchema, {
-          _errors: ["Last message already seen"],
-        });
-      }
-
-      const updatedMessage = await prisma.message.update({
-        where: { id: lastMessage.id },
-        data: {
-          seenBy: {
-            connect: { id: currentUserId },
-          },
-        },
-        include: { sender: true, seenBy: true },
-      });
-
-      const updatedMessageDto = omit(
-        {
-          ...updatedMessage,
-          sender: pick(updatedMessage.sender, ["id", "name", "image"]),
-          seenBy: updatedMessage.seenBy.map((user) =>
-            pick(user, ["id", "name", "image"])
-          ),
-        },
-        ["updatedAt", "senderId", "seenByIds"]
-      );
-
-      await pusher.trigger(
-        conversationId,
-        MESSAGES_CHANNEL.BASE + MESSAGES_CHANNEL.UPDATE,
-        updatedMessageDto
-      );
-      await pusher.trigger(
-        `private-user-${currentUserId}`,
-        CONVERSATIONS_CHANNEL.BASE + CONVERSATIONS_CHANNEL.MESSAGE.UPDATE,
-        updatedMessageDto
-      );
-
-      return {
-        message: "Seen status updated successfully",
-        updatedMessageId: updatedMessageDto.id,
-      };
     }
-  );
+
+    const lastMessage = conv.messages.at(0);
+    if (!lastMessage) {
+      return returnValidationErrors(seenMessageSchema, {
+        _errors: ["Last message not found"],
+      });
+    }
+
+    if (lastMessage.seenByIds.includes(currentUser.id)) {
+      return returnValidationErrors(seenMessageSchema, {
+        _errors: ["Last message already seen"],
+      });
+    }
+
+    const updatedMessage = await prisma.message.update({
+      where: { id: lastMessage.id },
+      data: {
+        seenBy: {
+          connect: { id: currentUser.id },
+        },
+      },
+      include: { sender: true, seenBy: true },
+    });
+
+    const updatedMessageDto = omit(
+      {
+        ...updatedMessage,
+        sender: pick(updatedMessage.sender, ["id", "name", "image"]),
+        seenBy: updatedMessage.seenBy.map((user) =>
+          pick(user, ["id", "name", "image"])
+        ),
+      },
+      ["updatedAt", "senderId", "seenByIds"]
+    );
+
+    await pusher.trigger(
+      conversationId,
+      MESSAGES_CHANNEL.UPDATE,
+      updatedMessageDto
+    );
+    await pusher.trigger(
+      `private-user-${currentUser.id}`,
+      CONVERSATIONS_CHANNEL.MESSAGE.UPDATE,
+      updatedMessageDto
+    );
+
+    return {
+      message: "Seen status updated successfully",
+      updatedMessageId: updatedMessageDto.id,
+    };
+  });

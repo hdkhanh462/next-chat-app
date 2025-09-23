@@ -3,7 +3,7 @@
 import { PanelRightIcon } from "lucide-react";
 import { useState } from "react";
 
-import AvartarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
+import AvatarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
 import OnlineIndicator from "@/app/(private)/_components/online-indicator";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -35,7 +35,7 @@ export default function ConversationHeader({ initial }: Props) {
         className="mr-2 data-[orientation=vertical]:h-1/2"
       />
       <div className="flex items-center gap-2">
-        <AvartarWithIndicator
+        <AvatarWithIndicator
           className="size-12"
           image={displayImage}
           alt={displayName}

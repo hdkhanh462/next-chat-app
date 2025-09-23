@@ -1,13 +1,18 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { compareDesc } from "date-fns";
 import { omit } from "lodash";
 import { usePathname } from "next/navigation";
 import { Channel } from "pusher-js";
 import { useCallback, useEffect, useRef } from "react";
 
+import newFriendToast from "@/components/toasts/new-friend";
 import newMessageToast from "@/components/toasts/new-message";
-import { CONVERSATIONS_CHANNEL } from "@/constants/pusher-events";
+import {
+  CONVERSATIONS_CHANNEL,
+  FRIENDS_CHANNEL,
+} from "@/constants/pusher-events";
 import { QUERY_KEYS } from "@/constants/query-keys";
 import { pusherClient } from "@/lib/pusher/client";
 import {
@@ -15,7 +20,8 @@ import {
   FullConversationDTO,
 } from "@/types/conversation.type";
 import { FullMessageDTO, MessageWithSenderDTO } from "@/types/message.type";
-import { compareDesc } from "date-fns";
+import { UserDTO } from "@/types/user.type";
+import acceptFriendToast from "@/components/toasts/accept-friend";
 
 export default function useNotificationChannel(userId?: string) {
   const channelRef = useRef<Channel | null>(null);
@@ -94,41 +100,64 @@ export default function useNotificationChannel(userId?: string) {
     [queryCLient]
   );
 
+  const newFriendHandler = useCallback((friend: UserDTO) => {
+    console.log("NEW:", friend);
+    // queryCLient.invalidateQueries({ queryKey: [QUERY_KEYS.FRIENDS] });
+    newFriendToast(friend);
+  }, []);
+
+  const acceptFriendHandler = useCallback((friend: UserDTO) => {
+    console.log("ACCEPT:", friend);
+    // queryCLient.invalidateQueries({ queryKey: [QUERY_KEYS.FRIENDS] });
+    acceptFriendToast(friend);
+  }, []);
+
   useEffect(() => {
     if (!userId) return;
     if (!channelRef.current) {
       channelRef.current = pusherClient.subscribe(`private-user-${userId}`);
       channelRef.current.bind(
-        CONVERSATIONS_CHANNEL.BASE + CONVERSATIONS_CHANNEL.NEW,
+        CONVERSATIONS_CHANNEL.NEW,
         newConversationHandler
       );
       channelRef.current.bind(
-        CONVERSATIONS_CHANNEL.BASE + CONVERSATIONS_CHANNEL.MESSAGE.NEW,
+        CONVERSATIONS_CHANNEL.MESSAGE.NEW,
         newMessageHandler
       );
       channelRef.current.bind(
-        CONVERSATIONS_CHANNEL.BASE + CONVERSATIONS_CHANNEL.MESSAGE.UPDATE,
+        CONVERSATIONS_CHANNEL.MESSAGE.UPDATE,
         updateMessageHandler
       );
+      channelRef.current.bind(FRIENDS_CHANNEL.NEW, newFriendHandler);
+      channelRef.current.bind(FRIENDS_CHANNEL.ACCEPT, acceptFriendHandler);
     }
 
     return () => {
       if (channelRef.current) {
         channelRef.current.unbind(
-          CONVERSATIONS_CHANNEL.BASE + CONVERSATIONS_CHANNEL.NEW,
+          CONVERSATIONS_CHANNEL.NEW,
           newConversationHandler
         );
         channelRef.current.unbind(
-          CONVERSATIONS_CHANNEL.BASE + CONVERSATIONS_CHANNEL.MESSAGE.NEW,
+          CONVERSATIONS_CHANNEL.MESSAGE.NEW,
           newMessageHandler
         );
         channelRef.current.unbind(
-          CONVERSATIONS_CHANNEL.BASE + CONVERSATIONS_CHANNEL.MESSAGE.UPDATE,
+          CONVERSATIONS_CHANNEL.MESSAGE.UPDATE,
           updateMessageHandler
         );
+        channelRef.current.unbind(FRIENDS_CHANNEL.NEW, newFriendHandler);
+        channelRef.current.unbind(FRIENDS_CHANNEL.ACCEPT, acceptFriendHandler);
         pusherClient.unsubscribe(`private-user-${userId}`);
         channelRef.current = null;
       }
     };
-  }, [userId, newMessageHandler, newConversationHandler, updateMessageHandler]);
+  }, [
+    userId,
+    newMessageHandler,
+    newConversationHandler,
+    updateMessageHandler,
+    newFriendHandler,
+    acceptFriendHandler,
+  ]);
 }

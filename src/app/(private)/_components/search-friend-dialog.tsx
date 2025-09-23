@@ -21,7 +21,7 @@ import {
   sendFriendRequestAction,
   unfriendAction,
 } from "@/actions/friend.action";
-import AvartarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
+import AvatarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
 import SearchInput from "@/components/search-input";
 import { Button } from "@/components/ui/button";
 import {
@@ -100,7 +100,7 @@ export default function SearchFriendDialog() {
                   <span>{item}</span>
                   <Button
                     variant="outline"
-                    className="ml-auto !p-1 size-auto"
+                    className="ml-auto !p-1 size-auto hover:cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation();
                       setHistory((prev) => prev.filter((ph) => ph !== item));
@@ -130,10 +130,7 @@ export default function SearchFriendDialog() {
                 users.map((user) => (
                   <CommandItem key={user.id}>
                     <div className="flex gap-2 items-center">
-                      <AvartarWithIndicator
-                        image={user.image}
-                        alt={user.name}
-                      />
+                      <AvatarWithIndicator image={user.image} alt={user.name} />
                       <span>{user.name}</span>
                     </div>
                     <div className="flex gap-2 items-center ml-auto">
@@ -230,7 +227,7 @@ function FriendActionButton({
       return (
         <Button
           variant="outline"
-          className="!p-1 size-auto"
+          className="!p-1 size-auto hover:cursor-pointer"
           disabled={sending}
           onClick={() => sendRequest({ addresseeId: targetUserId })}
         >
@@ -245,7 +242,7 @@ function FriendActionButton({
         return (
           <Button
             variant="outline"
-            className="!p-1 size-auto"
+            className="!p-1 size-auto hover:cursor-pointer"
             disabled={unfriending}
             onClick={() => unfriend({ friendId: targetUserId })}
           >
@@ -260,7 +257,7 @@ function FriendActionButton({
             <>
               <Button
                 variant="outline"
-                className="!p-1 size-auto"
+                className="!p-1 size-auto hover:cursor-pointer"
                 disabled={accepting || rejecting}
                 onClick={() =>
                   acceptRequest({ requestId: friendShip.requestId })
@@ -271,7 +268,7 @@ function FriendActionButton({
               </Button>
               <Button
                 variant="outline"
-                className="!p-1 size-auto"
+                className="!p-1 size-auto hover:cursor-pointer"
                 disabled={rejecting || accepting}
                 onClick={() =>
                   rejectRequest({ requestId: friendShip.requestId })
@@ -289,7 +286,7 @@ function FriendActionButton({
             <>
               <Button
                 variant="outline"
-                className="!p-1 size-auto"
+                className="!p-1 size-auto hover:cursor-pointer"
                 disabled={sending || canceling}
                 onClick={() => sendRequest({ addresseeId: targetUserId })}
               >
@@ -298,7 +295,7 @@ function FriendActionButton({
               </Button>
               <Button
                 variant="outline"
-                className="!p-1 size-auto"
+                className="!p-1 size-auto hover:cursor-pointer"
                 disabled={canceling || sending}
                 onClick={() =>
                   cancelRequest({ requestId: friendShip.requestId })
@@ -317,7 +314,7 @@ function FriendActionButton({
           return (
             <Button
               variant="outline"
-              className="!p-1 size-auto"
+              className="!p-1 size-auto hover:cursor-pointer"
               disabled={sending}
               onClick={() => sendRequest({ addresseeId: targetUserId })}
             >
@@ -330,7 +327,7 @@ function FriendActionButton({
           return (
             <Button
               variant="outline"
-              className="!p-1 size-auto"
+              className="!p-1 size-auto hover:cursor-pointer"
               disabled={sending}
               onClick={() => sendRequest({ addresseeId: targetUserId })}
             >

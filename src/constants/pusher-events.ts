@@ -1,14 +1,17 @@
 export const CONVERSATIONS_CHANNEL = {
-  BASE: "conversations:",
-  NEW: "new",
+  NEW: "conversations:new",
   MESSAGE: {
-    NEW: "new-message",
-    UPDATE: "update-message",
+    NEW: "conversations:new-message",
+    UPDATE: "conversations:update-message",
   },
 } as const;
 
 export const MESSAGES_CHANNEL = {
-  BASE: "messages:",
-  NEW: "new",
-  UPDATE: "update",
+  NEW: "messages:new",
+  UPDATE: "messages:update",
+} as const;
+
+export const FRIENDS_CHANNEL = {
+  NEW: "friends:new",
+  ACCEPT: "friends:accept",
 } as const;
