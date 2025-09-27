@@ -18,11 +18,16 @@ import {
   otpSchema,
   VerifyEmailInput,
 } from "@/schemas/email.schema";
+import {
+  ResetPasswordInput,
+  resetPasswordFormSchema,
+  ForgotPasswordInput,
+} from "@/schemas/forgot-password";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export const handleResendClick = async (values: EmailFormInput) => {
-  const { error } = await authClient.emailOtp.sendVerificationOtp({
+  const { error } = await authClient.forgetPassword.emailOtp({
     email: values.email,
-    type: "email-verification",
   });
 
   if (error) {
@@ -30,9 +35,21 @@ export const handleResendClick = async (values: EmailFormInput) => {
   }
 };
 
-export const verifiEmailEmailStep: StepConfig<EmailFormInput> = {
-  title: "Verify Email",
-  description: "Enter your email to receive the OTP",
+export const handleVerifiOTP = async (values: VerifyEmailInput) => {
+  const { error } = await authClient.emailOtp.checkVerificationOtp({
+    type: "forget-password",
+    email: values.email,
+    otp: values.otp,
+  });
+
+  if (error) {
+    console.error("Error verifiding OTP:", error);
+  }
+};
+
+export const forgotPasswordEmailStep: StepConfig<EmailFormInput> = {
+  title: "Forgot Password",
+  description: "Enter your email to receive a verification code",
   schema: emailSchema,
   async onSubmit(data) {
     await handleResendClick(data);
@@ -41,7 +58,7 @@ export const verifiEmailEmailStep: StepConfig<EmailFormInput> = {
     {
       key: "email",
       label: "Email",
-      description: "Please enter your email address to receive the OTP",
+      description: "We'll send a 6-digit code to this email address",
       render: ({ field }) => (
         <FormControl>
           <Input placeholder="your@email.com" {...field} />
@@ -51,12 +68,17 @@ export const verifiEmailEmailStep: StepConfig<EmailFormInput> = {
   ],
 };
 
-export const verifiEmailOtpStep: StepConfig<OTPFormInput, VerifyEmailInput> = {
-  title: "Verify OTP",
+export const forgotPasswordOtpStep: StepConfig<
+  OTPFormInput,
+  ForgotPasswordInput
+> = {
+  title: "Enter Verification Code",
   description:
-    "Enter the 6-digit OTP sent to your email, check spam folder if not found",
+    "Please enter the 6-digit code sent to your email. Check your spam or junk folder if you don't see it",
   schema: otpSchema,
-  disableBackAction: true,
+  async onSubmit(_, data) {
+    await handleVerifiOTP(data);
+  },
   fields: [
     {
       key: "otp",
@@ -86,6 +108,44 @@ export const verifiEmailOtpStep: StepConfig<OTPFormInput, VerifyEmailInput> = {
               />
             </div>
           </div>
+        </FormControl>
+      ),
+    },
+  ],
+};
+
+export const forgotPasswordResetPasswordStep: StepConfig<
+  ResetPasswordInput,
+  ForgotPasswordInput
+> = {
+  title: "Set New Password",
+  description: "Create a new password for your account",
+  schema: resetPasswordFormSchema,
+  disableBackAction: true,
+  fields: [
+    {
+      key: "newPassword",
+      label: "New password",
+      render: ({ field }) => (
+        <FormControl>
+          <PasswordInput
+            {...field}
+            placeholder="Enter your new password"
+            autoComplete="new-password"
+          />
+        </FormControl>
+      ),
+    },
+    {
+      key: "confirmNewPassword",
+      label: "Confirm new password",
+      render: ({ field }) => (
+        <FormControl>
+          <PasswordInput
+            {...field}
+            placeholder="Re-enter your new password"
+            autoComplete="new-password"
+          />
         </FormControl>
       ),
     },

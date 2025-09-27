@@ -50,7 +50,7 @@ export interface StepConfig<
   fields: StepField<TStepSchema, TMainSchema>[];
   schema: z.ZodType<TStepSchema, any>;
   disableBackAction?: boolean;
-  onSubmit?: (data: TStepSchema) => Promise<void>;
+  onSubmit?: (stepData: TStepSchema, data: TMainSchema) => Promise<void>;
 }
 
 export type MultipleStepFormProps<TMainSchema> = {
@@ -100,7 +100,7 @@ export function MultipleStepForm<TMainSchema>({
       if (currentStep.onSubmit) {
         try {
           setIsSubmitting(true);
-          await currentStep.onSubmit(data);
+          await currentStep.onSubmit(data, updatedData);
         } catch (error) {
           isContinue = false;
           console.error("Error in step submission:", error);
