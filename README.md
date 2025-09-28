@@ -47,7 +47,7 @@ Hardware:
 
 - Clone this repository and install dependencies:
 	```bash
-	git clone <repo-url>
+	git clone https://github.com/hdkhanh462/next-chat-app
 	cd next-chat-app
 	npm install
 	```
