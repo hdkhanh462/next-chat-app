@@ -2,7 +2,7 @@ import "server-only";
 
 import { omit, pick } from "lodash";
 
-import { getUserCached } from "@/data/user";
+import { getUserCached } from "@/data/server/user";
 import { prisma } from "@/lib/prisma";
 import { ConversationFilterInput } from "@/schemas/conversation.schema";
 

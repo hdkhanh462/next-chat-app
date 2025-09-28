@@ -17,7 +17,7 @@ import {
   extractConvDetails,
   useUserConvsQuery,
 } from "@/data/hooks/conversation";
-import { useUserQuery } from "@/data/hooks/user";
+import { useUserQuery } from "@/data/queries/user";
 import { FullConversationDTO } from "@/types/conversation.type";
 
 export default function SearchConversationDialog() {

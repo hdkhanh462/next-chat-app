@@ -1,4 +1,4 @@
-import { getConversations } from "@/data/conversation";
+import { getConversations } from "@/data/server/conversation";
 import { conversationFilterSchema } from "@/schemas/conversation.schema";
 
 export async function GET(req: Request) {

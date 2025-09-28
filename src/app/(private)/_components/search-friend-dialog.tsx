@@ -36,7 +36,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useSearchUsersQuery } from "@/data/hooks/user";
+import { useUsersQuery } from "@/data/queries/user";
 import { FriendShipStatus } from "@/types/user.type";
 import { QUERY_KEYS } from "@/constants/query-keys";
 
@@ -44,7 +44,7 @@ export default function SearchFriendDialog() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [history, setHistory] = useState<string[]>([]);
-  const { data: users, isLoading, setKeyword } = useSearchUsersQuery();
+  const { data: users, isLoading, setKeyword } = useUsersQuery();
   const queryClient = useQueryClient();
 
   return (

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-import { getMessages } from "@/data/message";
+import { getMessages } from "@/data/server/message";
 import { messageQueryParamsSchema } from "@/schemas/message.schema";
 
 export async function GET(

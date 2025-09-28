@@ -21,7 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useMessages } from "@/data/hooks/message";
-import { useUserQuery } from "@/data/hooks/user";
+import { useUserQuery } from "@/data/queries/user";
 import { pusherClient } from "@/lib/pusher/client";
 import {
   FullMessageDTO,

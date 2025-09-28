@@ -9,7 +9,7 @@ import {
   friendSchema,
   sendFriendRequestSchema,
   unfriendSchema,
-} from "@/schemas/friend.schema";
+} from "@/schemas/user.schema";
 import { makeKeyPair } from "@/utils/db-helper";
 import { pusher } from "@/lib/pusher/server";
 import { FRIENDS_CHANNEL } from "@/constants/pusher-events";

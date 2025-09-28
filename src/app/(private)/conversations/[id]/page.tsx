@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import ConversationBody from "@/app/(private)/conversations/_components/body";
 import ConversationFooter from "@/app/(private)/conversations/_components/footer";
 import ConversationHeader from "@/app/(private)/conversations/_components/header";
-import { getConversationById } from "@/data/conversation";
+import { getConversationById } from "@/data/server/conversation";
 
 type PageProps = {
   params: Promise<{ id: string }>;

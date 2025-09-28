@@ -17,7 +17,7 @@ import {
   extractConvDetails,
   useUserConvsQuery,
 } from "@/data/hooks/conversation";
-import { useUserQuery } from "@/data/hooks/user";
+import { useUserQuery } from "@/data/queries/user";
 import { usePresenceStore } from "@/lib/zustand/use-presence-store";
 import { FullConversationDTO } from "@/types/conversation.type";
 import { cn } from "@/utils/shadcn";

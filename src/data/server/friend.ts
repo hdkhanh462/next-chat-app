@@ -1,11 +1,13 @@
+import "server-only";
+
 import { Prisma } from "@prisma/client";
 import { pick } from "lodash";
 
-import { getUserCached } from "@/data/user";
+import { getUserCached } from "@/data/server/user";
 import { prisma } from "@/lib/prisma";
-import { FriendFilterInput } from "@/schemas/friend.schema";
+import { UserParamsInput } from "@/schemas/user.schema";
 
-export async function getFriends(params?: FriendFilterInput) {
+export async function getFriends(params?: UserParamsInput) {
   const user = await getUserCached();
 
   const friends = await prisma.friendship.findMany({
