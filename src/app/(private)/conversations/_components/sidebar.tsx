@@ -15,9 +15,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   extractConvDetails,
-  useUserConvsQuery,
-} from "@/data/hooks/conversation";
-import { useUserQuery } from "@/data/hooks/user";
+  useConversationsQuery,
+} from "@/data/queries/conversation";
+import { useUserQuery } from "@/data/queries/user";
 import { usePresenceStore } from "@/lib/zustand/use-presence-store";
 import { FullConversationDTO } from "@/types/conversation.type";
 import { cn } from "@/utils/shadcn";
@@ -41,7 +41,7 @@ function ConversationSidebarContent({
   currentUserId,
 }: ConversationSidebarContentProps) {
   const { data: conversations, isFetching: isFetchingConvs } =
-    useUserConvsQuery();
+    useConversationsQuery({});
 
   if (isFetchingConvs)
     return (
@@ -142,7 +142,7 @@ function ConversationItem({
       />
       <div className="w-full">
         <div className="flex items-center w-full gap-2">
-          <span className="font-medium line-clamp-1 w-[50%] whitespace-break-spaces">
+          <span className="font-medium line-clamp-1 w-[80%] whitespace-break-spaces">
             {displayName}
           </span>{" "}
           {formattedDate && (

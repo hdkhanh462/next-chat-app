@@ -1,4 +1,4 @@
-import { getUserCached } from "@/data/user";
+import { getUserCached } from "@/data/server/user";
 import { pusher } from "@/lib/pusher/server";
 
 export async function POST(request: Request) {

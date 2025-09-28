@@ -13,7 +13,6 @@ import {
   CONVERSATIONS_CHANNEL,
   FRIENDS_CHANNEL,
 } from "@/constants/pusher-events";
-import { QUERY_KEYS } from "@/constants/query-keys";
 import { pusherClient } from "@/lib/pusher/client";
 import {
   ConversationWithMembersDTO,
@@ -22,6 +21,7 @@ import {
 import { FullMessageDTO, MessageWithSenderDTO } from "@/types/message.type";
 import { UserDTO } from "@/types/user.type";
 import acceptFriendToast from "@/components/toasts/accept-friend";
+import { QUERY_KEYS } from "@/data/queries/keys";
 
 export default function useNotificationChannel(userId?: string) {
   const channelRef = useRef<Channel | null>(null);
@@ -31,7 +31,7 @@ export default function useNotificationChannel(userId?: string) {
   const newMessageHandler = useCallback(
     (msg: MessageWithSenderDTO) => {
       queryCLient.setQueryData(
-        [QUERY_KEYS.CONVERSATIONS, null],
+        QUERY_KEYS.CONVERSATIONS.getConversations({}),
         (prev?: FullConversationDTO[]) => {
           if (!prev) return [];
 
@@ -61,7 +61,7 @@ export default function useNotificationChannel(userId?: string) {
   const newConversationHandler = useCallback(
     (conv: ConversationWithMembersDTO) => {
       queryCLient.setQueryData(
-        [QUERY_KEYS.CONVERSATIONS, null],
+        QUERY_KEYS.CONVERSATIONS.getConversations({}),
         (prev?: FullConversationDTO[]) => {
           if (!prev) {
             return [{ ...conv, messages: [] }];
@@ -78,7 +78,7 @@ export default function useNotificationChannel(userId?: string) {
   const updateMessageHandler = useCallback(
     (msg: FullMessageDTO) => {
       queryCLient.setQueryData(
-        [QUERY_KEYS.CONVERSATIONS, null],
+        QUERY_KEYS.CONVERSATIONS.getConversations({}),
         (prev?: FullConversationDTO[]) => {
           if (!prev) return [];
           return prev.map((conv) =>
@@ -101,14 +101,10 @@ export default function useNotificationChannel(userId?: string) {
   );
 
   const newFriendHandler = useCallback((friend: UserDTO) => {
-    console.log("NEW:", friend);
-    // queryCLient.invalidateQueries({ queryKey: [QUERY_KEYS.FRIENDS] });
     newFriendToast(friend);
   }, []);
 
   const acceptFriendHandler = useCallback((friend: UserDTO) => {
-    console.log("ACCEPT:", friend);
-    // queryCLient.invalidateQueries({ queryKey: [QUERY_KEYS.FRIENDS] });
     acceptFriendToast(friend);
   }, []);
 

@@ -5,6 +5,7 @@ import { cache } from "react";
 
 import { auth } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
+import { UserParamsInput } from "@/schemas/user.schema";
 import { FriendShipStatus, UserWithFriendShipStatus } from "@/types/user.type";
 
 export const getUserCached = cache(async () => {
@@ -15,19 +16,26 @@ export const getUserCached = cache(async () => {
   return sessionData.user;
 });
 
-export async function searchUsers(
-  keyword: string
+export async function getUsers(
+  params: UserParamsInput
 ): Promise<UserWithFriendShipStatus[]> {
   const user = await getUserCached();
+  const skip =
+    params.page && params.limit ? (params.page - 1) * params.limit : 0;
 
   const users = await prisma.user.findMany({
-    take: 10,
+    take: params.limit,
+    skip,
     where: {
       id: { not: user.id },
-      OR: [
-        { name: { contains: keyword, mode: "insensitive" } },
-        { email: { equals: keyword, mode: "insensitive" } },
-      ],
+      ...(params.keyword
+        ? {
+            OR: [
+              { name: { contains: params.keyword, mode: "insensitive" } },
+              { email: { equals: params.keyword, mode: "insensitive" } },
+            ],
+          }
+        : {}),
     },
     select: {
       id: true,

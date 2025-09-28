@@ -20,8 +20,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useMessages } from "@/data/hooks/message";
-import { useUserQuery } from "@/data/hooks/user";
+import { useMessagesQuery } from "@/data/queries/message";
+import { useUserQuery } from "@/data/queries/user";
 import { pusherClient } from "@/lib/pusher/client";
 import {
   FullMessageDTO,
@@ -29,8 +29,8 @@ import {
   MessageWithSenderDTO,
 } from "@/types/message.type";
 import { cn } from "@/utils/shadcn";
-import { QUERY_KEYS } from "@/constants/query-keys";
 import { MESSAGES_CHANNEL } from "@/constants/pusher-events";
+import { QUERY_KEYS } from "@/data/queries/keys";
 
 type Props = {
   conversationId: string;
@@ -47,7 +47,7 @@ export default function ConversationBody({ conversationId }: Props) {
   });
   const { data: currentUser } = useUserQuery();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useMessages(conversationId);
+    useMessagesQuery(conversationId);
   const { execute: seenMessageExecute } = useAction(seenMessage);
   const queryClient = useQueryClient();
 
@@ -82,7 +82,7 @@ export default function ConversationBody({ conversationId }: Props) {
     (msg: MessageWithSenderDTO) => {
       seenMessageExecute({ conversationId });
       queryClient.setQueryData(
-        [QUERY_KEYS.CONVERSATIONS, conversationId, QUERY_KEYS.MESSAGES],
+        QUERY_KEYS.CONVERSATIONS.getMessages(conversationId),
         (prev?: InfiniteData<FullMessagesWithCursorDTO>) => {
           if (!prev) {
             return {
@@ -129,7 +129,7 @@ export default function ConversationBody({ conversationId }: Props) {
   const updateMessageHandler = useCallback(
     (msg: FullMessageDTO) => {
       queryClient.setQueryData(
-        [QUERY_KEYS.CONVERSATIONS, conversationId, QUERY_KEYS.MESSAGES],
+        QUERY_KEYS.CONVERSATIONS.getMessages(conversationId),
         (prev?: InfiniteData<FullMessagesWithCursorDTO>) => {
           if (!prev) return prev;
 

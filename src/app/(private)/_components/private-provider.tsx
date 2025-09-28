@@ -1,6 +1,6 @@
 "use client";
 
-import { useUserQuery } from "@/data/hooks/user";
+import { useUserQuery } from "@/data/queries/user";
 import useNotificationChannel from "@/lib/pusher/use-notification-channel";
 import usePresenceChannel from "@/lib/pusher/use-presence-channel";
 

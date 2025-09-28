@@ -36,15 +36,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useSearchUsersQuery } from "@/data/hooks/user";
+import { QUERY_KEYS } from "@/data/queries/keys";
+import { useUsersQuery } from "@/data/queries/user";
 import { FriendShipStatus } from "@/types/user.type";
-import { QUERY_KEYS } from "@/constants/query-keys";
 
 export default function SearchFriendDialog() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [history, setHistory] = useState<string[]>([]);
-  const { data: users, isLoading, setKeyword } = useSearchUsersQuery();
+  const { data: users, isLoading, setParams } = useUsersQuery({ keyword: "" });
   const queryClient = useQueryClient();
 
   return (
@@ -76,7 +76,7 @@ export default function SearchFriendDialog() {
             if (e.key === "Enter") {
               e.preventDefault();
               if (query.length >= 2) {
-                setKeyword(query);
+                setParams((prev) => ({ ...prev, keyword: query }));
                 setHistory((prev) =>
                   [query, ...prev.filter((ph) => ph !== query)].slice(0, 3)
                 );
@@ -93,7 +93,7 @@ export default function SearchFriendDialog() {
                   key={item}
                   onSelect={() => {
                     setQuery(item);
-                    setKeyword(item);
+                    setParams((prev) => ({ ...prev, keyword: item }));
                   }}
                 >
                   <HistoryIcon />
@@ -139,16 +139,15 @@ export default function SearchFriendDialog() {
                         friendShip={user.friendShip}
                         onActionSuccess={(message) => {
                           toast.success(message);
+                          // TODO: using optimistic update
                           queryClient.invalidateQueries({
-                            queryKey: [QUERY_KEYS.USER.OTHER],
-                            type: "active",
+                            queryKey: QUERY_KEYS.USERS.all(),
                           });
                         }}
                         onActionError={(messages) => {
                           if (messages) toast.error(messages[0]);
                           queryClient.invalidateQueries({
-                            queryKey: [QUERY_KEYS.USER.OTHER],
-                            type: "active",
+                            queryKey: QUERY_KEYS.USERS.all(),
                           });
                         }}
                       />

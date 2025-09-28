@@ -1,13 +1,24 @@
-import { searchUsers } from "@/data/user";
+import { NextRequest } from "next/server";
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const keyword = searchParams.get("keyword");
+import { getUsers } from "@/data/server/user";
+import { userParamsSchema } from "@/schemas/user.schema";
 
-  if (!keyword) {
-    return Response.json([]);
+export async function GET(req: NextRequest) {
+  const searchParams = req.nextUrl.searchParams;
+  const parsedParams = userParamsSchema.safeParse(
+    Object.fromEntries(searchParams.entries())
+  );
+
+  if (!parsedParams.success) {
+    return Response.json(
+      {
+        error: "Invalid query params",
+        issues: parsedParams.error.issues,
+      },
+      { status: 400 }
+    );
   }
 
-  const users = await searchUsers(keyword);
+  const users = await getUsers(parsedParams.data);
   return Response.json(users);
 }

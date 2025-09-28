@@ -1,3 +1,4 @@
+import { paginationSchema, searchSchema } from "@/schemas/query.schema";
 import z from "zod";
 
 export const createConversationSchema = z.object({
@@ -7,11 +8,12 @@ export const createConversationSchema = z.object({
     .max(100, "You can select up to 5 users"),
 });
 
-export const conversationFilterSchema = z.object({
-  keyword: z.string().min(2).optional().nullable(),
-  since: z.coerce.date().optional().nullable(),
-  after: z.coerce.date().optional().nullable(),
+export const conversationParamsSchema = z.object({
+  ...searchSchema.shape,
+  ...paginationSchema.shape,
+  since: z.coerce.date().optional(),
+  after: z.coerce.date().optional(),
 });
 
 export type CreateConversationInput = z.infer<typeof createConversationSchema>;
-export type ConversationFilterInput = z.infer<typeof conversationFilterSchema>;
+export type ConversationParamsInput = z.infer<typeof conversationParamsSchema>;

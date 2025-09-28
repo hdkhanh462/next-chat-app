@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/utils/shadcn";
 import Link from "next/link";
-import { useUserQuery } from "@/data/hooks/user";
+import { useUserQuery } from "@/data/queries/user";
 
 const initialNotifications = [
   {

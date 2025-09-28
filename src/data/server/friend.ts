@@ -1,26 +1,28 @@
+import "server-only";
+
 import { Prisma } from "@prisma/client";
 import { pick } from "lodash";
 
-import { getUserCached } from "@/data/user";
+import { getUserCached } from "@/data/server/user";
 import { prisma } from "@/lib/prisma";
-import { FriendFilterInput } from "@/schemas/friend.schema";
+import { UserParamsInput } from "@/schemas/user.schema";
+import { UserDTO } from "@/types/user.type";
 
-export async function getFriends(params?: FriendFilterInput) {
+export async function getFriends(params: UserParamsInput): Promise<UserDTO[]> {
   const user = await getUserCached();
+  const skip =
+    params.page && params.limit ? (params.page - 1) * params.limit : 0;
 
   const friends = await prisma.friendship.findMany({
-    take: params?.limit,
-    ...(params?.cursor && {
-      skip: 1,
-      cursor: { id: params.cursor },
-    }),
+    take: params.limit,
+    skip,
     where: {
       status: "ACCEPTED",
       AND: [
         {
           OR: [{ requesterId: user.id }, { addresseeId: user.id }],
         },
-        ...(params?.keyword
+        ...(params.keyword
           ? [
               {
                 OR: [
@@ -51,12 +53,10 @@ export async function getFriends(params?: FriendFilterInput) {
       addressee: true,
     },
   });
-  const nextCursor =
-    friends.length === params?.limit ? friends[friends.length - 1].id : null;
-  const friendsDto = friends.map((f) =>
+
+  return friends.map((f) =>
     f.requesterId === user.id
       ? pick(f.addressee, ["id", "name", "image"])
       : pick(f.requester, ["id", "name", "image"])
   );
-  return { users: friendsDto, nextCursor };
 }

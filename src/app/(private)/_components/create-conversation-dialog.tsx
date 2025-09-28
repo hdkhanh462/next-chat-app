@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { find } from "lodash";
 import { CheckIcon, Loader2, MessageSquarePlusIcon, XIcon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -33,7 +33,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useFriends } from "@/data/hooks/friend";
+import { useFriendsQuery } from "@/data/queries/friend";
 import {
   CreateConversationInput,
   createConversationSchema,
@@ -49,10 +49,10 @@ export default function SearchFriendDialog() {
   const [query, setQuery] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<SelectedUser[]>([]);
   const {
-    data,
+    data: friends,
     isFetching: isFetchingFriends,
     setParams,
-  } = useFriends({ limit: 20, keyword: "" });
+  } = useFriendsQuery({ keyword: "" });
   const { execute: createConversation, isExecuting: conversationCreating } =
     useAction(createConversationAction, {
       onSuccess({ data }) {
@@ -67,11 +67,6 @@ export default function SearchFriendDialog() {
           toast.error(error.validationErrors?._errors[0]);
       },
     });
-
-  const friends = useMemo(
-    () => (data?.pages ? data.pages.flatMap((page) => page.users ?? []) : []),
-    [data]
-  );
 
   const form = useForm<CreateConversationInput>({
     resolver: zodResolver(createConversationSchema),

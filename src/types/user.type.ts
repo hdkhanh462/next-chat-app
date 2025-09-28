@@ -1,3 +1,4 @@
+import { WithCursorPagination } from "@/types/query.type";
 import { RequestStatus, User } from "@prisma/client";
 
 export type UserDTO = Pick<User, "id" | "name" | "image">;
@@ -10,9 +11,8 @@ export type FriendShipStatus = {
   direction: RequestDirection;
 };
 
-export type UsersWithCursorDTO = {
+export type UsersWithCursorDTO = WithCursorPagination & {
   users: UserDTO[];
-  nextCursor: string | null;
 };
 
 export type UserWithFriendShipStatus = UserDTO & {

@@ -15,9 +15,9 @@ import {
 } from "@/components/ui/command";
 import {
   extractConvDetails,
-  useUserConvsQuery,
-} from "@/data/hooks/conversation";
-import { useUserQuery } from "@/data/hooks/user";
+  useConversationsQuery,
+} from "@/data/queries/conversation";
+import { useUserQuery } from "@/data/queries/user";
 import { FullConversationDTO } from "@/types/conversation.type";
 
 export default function SearchConversationDialog() {
@@ -28,8 +28,8 @@ export default function SearchConversationDialog() {
   const {
     data: conversations,
     isFetching: isFetchingConvs,
-    setFilter,
-  } = useUserConvsQuery({
+    setParams,
+  } = useConversationsQuery({
     keyword: "",
   });
 
@@ -67,7 +67,7 @@ export default function SearchConversationDialog() {
             if (e.key === "Enter") {
               e.preventDefault();
               if (query.length >= 2) {
-                setFilter({ keyword: query });
+                setParams({ keyword: query });
               }
             }
           }}

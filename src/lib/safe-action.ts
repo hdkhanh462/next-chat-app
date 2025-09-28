@@ -1,7 +1,7 @@
 import { pick } from "lodash";
 import { createSafeActionClient } from "next-safe-action";
 
-import { getUserCached } from "@/data/user";
+import { getUserCached } from "@/data/server/user";
 
 export const actionClient = createSafeActionClient();
 

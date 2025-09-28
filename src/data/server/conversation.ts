@@ -2,28 +2,35 @@ import "server-only";
 
 import { omit, pick } from "lodash";
 
-import { getUserCached } from "@/data/user";
+import { getUserCached } from "@/data/server/user";
 import { prisma } from "@/lib/prisma";
-import { ConversationFilterInput } from "@/schemas/conversation.schema";
+import { ConversationParamsInput } from "@/schemas/conversation.schema";
+import { FullConversationDTO } from "@/types/conversation.type";
 
-export async function getConversations(filter?: ConversationFilterInput) {
+export async function getConversations(
+  params: ConversationParamsInput
+): Promise<FullConversationDTO[]> {
   const user = await getUserCached();
+  const skip =
+    params.page && params.limit ? (params.page - 1) * params.limit : 0;
+
   const conversations = await prisma.conversation.findMany({
-    take: 10,
+    take: params.limit,
+    skip,
     orderBy: { lastMessageAt: "desc" },
     where: {
       members: { some: { id: user.id } },
-      ...(filter?.since ? { updatedAt: { lt: filter.since } } : {}),
-      ...(filter?.after ? { updatedAt: { gt: filter.after } } : {}),
-      ...(filter?.keyword
+      ...(params.since ? { updatedAt: { lt: params.since } } : {}),
+      ...(params.after ? { updatedAt: { gt: params.after } } : {}),
+      ...(params.keyword
         ? {
             OR: [
-              { name: { contains: filter.keyword, mode: "insensitive" } },
+              { name: { contains: params.keyword, mode: "insensitive" } },
               {
                 members: {
                   some: {
                     id: { not: user.id },
-                    name: { contains: filter.keyword, mode: "insensitive" },
+                    name: { contains: params.keyword, mode: "insensitive" },
                   },
                 },
               },
