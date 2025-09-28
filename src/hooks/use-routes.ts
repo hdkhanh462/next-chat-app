@@ -7,7 +7,7 @@ import {
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import { IconType } from "react-icons/lib";
-import { TbUsers, TbUsersPlus } from "react-icons/tb";
+import { TbUsers } from "react-icons/tb";
 
 type Routes = {
   title: string;
@@ -55,17 +55,17 @@ export function useContactRoutes(): Routes[] {
         isActive: pathname.endsWith("/contacts/groups"),
       },
       {
-        title: "Friend invitations",
-        url: "/contacts/friend-invitations",
+        title: "Friend requests",
+        url: "/contacts/friend-requests",
         icon: UserPlusIcon,
-        isActive: pathname.endsWith("/contacts/friend-invitations"),
+        isActive: pathname.endsWith("/contacts/friend-requests"),
       },
-      {
-        title: "Group invitations",
-        url: "/contacts/group-invitations",
-        icon: TbUsersPlus,
-        isActive: pathname.endsWith("/contacts/group-invitations"),
-      },
+      // {
+      //   title: "Group invitations",
+      //   url: "/contacts/group-invitations",
+      //   icon: TbUsersPlus,
+      //   isActive: pathname.endsWith("/contacts/group-invitations"),
+      // },
     ];
   }, [pathname]);
 }

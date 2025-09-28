@@ -13,6 +13,7 @@ export const conversationParamsSchema = z.object({
   ...paginationSchema.shape,
   since: z.coerce.date().optional(),
   after: z.coerce.date().optional(),
+  isGroup: z.coerce.boolean().optional(),
 });
 
 export type CreateConversationInput = z.infer<typeof createConversationSchema>;

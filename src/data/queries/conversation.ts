@@ -1,3 +1,5 @@
+"use client";
+
 import { betterFetch } from "@better-fetch/fetch";
 import { useQuery } from "@tanstack/react-query";
 import { find } from "lodash";
@@ -11,24 +13,29 @@ import { QUERY_KEYS } from "@/data/queries/keys";
 export async function getConversations(
   params: ConversationParamsInput
 ): Promise<FullConversationDTO[]> {
-  if (params.keyword === undefined || params.keyword === null) {
-    const result = await betterFetch<FullConversationDTO[]>(
-      CHAT_API_PATH.CONVERSATIONS
-    );
-    return result.data ?? [];
-  }
-
-  if (params.keyword.length < 2) return [];
-
   const urlParams = new URLSearchParams();
   if (params.keyword) urlParams.append("keyword", params.keyword);
   if (params.limit) urlParams.append("limit", params.limit.toString());
   if (params.page) urlParams.append("page", params.page.toString());
   if (params.since) urlParams.append("since", params.since.toISOString());
   if (params.after) urlParams.append("after", params.after.toISOString());
+  if (typeof params.isGroup === "boolean")
+    urlParams.append("isGroup", params.isGroup.toString());
+
+  if (params.keyword === undefined || params.keyword === null) {
+    urlParams.delete("keyword");
+    const result = await betterFetch<FullConversationDTO[]>(
+      CHAT_API_PATH.CONVERSATIONS + "?" + urlParams.toString()
+    );
+    return result.data ?? [];
+  }
+
+  if (params.keyword.length < 2) return [];
+
+  console.log(urlParams.toString());
 
   const result = await betterFetch<FullConversationDTO[]>(
-    CHAT_API_PATH.CONVERSATIONS + "?" + params.toString()
+    CHAT_API_PATH.CONVERSATIONS + "?" + urlParams.toString()
   );
   return result.data ?? [];
 }

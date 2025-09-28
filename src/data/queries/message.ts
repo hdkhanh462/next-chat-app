@@ -1,3 +1,5 @@
+"use client";
+
 import { betterFetch } from "@better-fetch/fetch";
 import { InfiniteData, useInfiniteQuery } from "@tanstack/react-query";
 
