@@ -19,6 +19,8 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  console.log(parsedParams.data);
+
   const conversations = await getConversations(parsedParams.data);
   return Response.json(conversations);
 }

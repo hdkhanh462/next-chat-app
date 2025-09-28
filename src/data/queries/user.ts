@@ -18,19 +18,19 @@ export async function getUser() {
 export async function getUsers(
   params: UserParamsInput
 ): Promise<UserWithFriendShipStatus[]> {
+  const urlParams = new URLSearchParams();
+  if (params.keyword) urlParams.append("keyword", params.keyword);
+  if (params.page) urlParams.append("page", params.page.toString());
+  if (params.limit) urlParams.append("limit", params.limit.toString());
+
   if (params.keyword === undefined || params.keyword === null) {
     const result = await betterFetch<UserWithFriendShipStatus[]>(
-      CHAT_API_PATH.USERS
+      CHAT_API_PATH.USERS + "?" + urlParams.toString()
     );
     return result.data ?? [];
   }
 
   if (params.keyword.length < 2) return [];
-
-  const urlParams = new URLSearchParams();
-  if (params.keyword) urlParams.append("keyword", params.keyword);
-  if (params.page) urlParams.append("page", params.page.toString());
-  if (params.limit) urlParams.append("limit", params.limit.toString());
 
   const result = await betterFetch<UserWithFriendShipStatus[]>(
     CHAT_API_PATH.USERS + "?" + urlParams.toString()

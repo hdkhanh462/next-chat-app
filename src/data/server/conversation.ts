@@ -22,6 +22,9 @@ export async function getConversations(
       members: { some: { id: user.id } },
       ...(params.since ? { updatedAt: { lt: params.since } } : {}),
       ...(params.after ? { updatedAt: { gt: params.after } } : {}),
+      ...(typeof params.isGroup === "boolean"
+        ? { isGroup: params.isGroup }
+        : {}),
       ...(params.keyword
         ? {
             OR: [
