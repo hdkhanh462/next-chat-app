@@ -10,7 +10,13 @@ export async function GET(req: NextRequest) {
   );
 
   if (!parsedParams.success) {
-    return Response.json("Invalid query params", { status: 400 });
+    return Response.json(
+      {
+        error: "Invalid query params",
+        issues: parsedParams.error.issues,
+      },
+      { status: 400 }
+    );
   }
 
   const users = await getUsers(parsedParams.data);

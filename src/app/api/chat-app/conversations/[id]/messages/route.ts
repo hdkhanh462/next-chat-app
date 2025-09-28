@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 import { getMessages } from "@/data/server/message";
-import { messageQueryParamsSchema } from "@/schemas/message.schema";
+import { cursorPaginationSchema } from "@/schemas/query.schema";
 
 export async function GET(
   req: NextRequest,
@@ -9,14 +9,20 @@ export async function GET(
 ) {
   const { id } = await params;
   const searchParams = req.nextUrl.searchParams;
-  const parsedParams = messageQueryParamsSchema.safeParse(
+  const parsedParams = cursorPaginationSchema.safeParse(
     Object.fromEntries(searchParams.entries())
   );
 
   if (!parsedParams.success) {
-    return Response.json("Invalid query params", { status: 400 });
+    return Response.json(
+      {
+        error: "Invalid query params",
+        issues: parsedParams.error.issues,
+      },
+      { status: 400 }
+    );
   }
 
-  const result = await getMessages(id, parsedParams.data);
-  return Response.json(result);
+  const messages = await getMessages(id, parsedParams.data);
+  return Response.json(messages);
 }

@@ -8,7 +8,7 @@ import { CHAT_API_PATH } from "@/constants/routes";
 import { QUERY_KEYS } from "@/data/queries/keys";
 import { authClient } from "@/lib/auth/client";
 import { UserParamsInput } from "@/schemas/user.schema";
-import { UsersWithPaginationDTO } from "@/types/user.type";
+import { UserWithFriendShipStatus } from "@/types/user.type";
 
 export async function getUser() {
   const { data } = await authClient.getSession();
@@ -17,26 +17,25 @@ export async function getUser() {
 
 export async function getUsers(
   params: UserParamsInput
-): Promise<UsersWithPaginationDTO> {
+): Promise<UserWithFriendShipStatus[]> {
   if (params.keyword === undefined || params.keyword === null) {
-    const result = await betterFetch<UsersWithPaginationDTO>(
-      CHAT_API_PATH.FRIENDS
+    const result = await betterFetch<UserWithFriendShipStatus[]>(
+      CHAT_API_PATH.USERS
     );
-    return result.data || { users: [], hasNext: false, hasPrevious: false };
+    return result.data ?? [];
   }
 
-  if (params.keyword.length < 2)
-    return { users: [], hasNext: false, hasPrevious: false };
+  if (params.keyword.length < 2) return [];
 
   const urlParams = new URLSearchParams();
   if (params.keyword) urlParams.append("keyword", params.keyword);
   if (params.page) urlParams.append("page", params.page.toString());
   if (params.limit) urlParams.append("limit", params.limit.toString());
 
-  const result = await betterFetch<UsersWithPaginationDTO>(
-    CHAT_API_PATH.FRIENDS + "?" + urlParams.toString()
+  const result = await betterFetch<UserWithFriendShipStatus[]>(
+    CHAT_API_PATH.USERS + "?" + urlParams.toString()
   );
-  return result.data || { users: [], hasNext: false, hasPrevious: false };
+  return result.data ?? [];
 }
 
 export function useUserQuery() {

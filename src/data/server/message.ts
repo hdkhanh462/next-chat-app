@@ -4,12 +4,12 @@ import { omit, pick } from "lodash";
 
 import { getUserCached } from "@/data/server/user";
 import { prisma } from "@/lib/prisma";
-import { MessageOueryParamsInput } from "@/schemas/message.schema";
+import { MessageParamsInput } from "@/schemas/message.schema";
 import { FullMessagesWithCursorDTO } from "@/types/message.type";
 
 export async function getMessages(
   conversationId: string,
-  query?: MessageOueryParamsInput
+  query?: MessageParamsInput
 ): Promise<FullMessagesWithCursorDTO> {
   const user = await getUserCached();
   const messages = await prisma.message.findMany({

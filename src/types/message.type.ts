@@ -1,3 +1,4 @@
+import { WithCursorPagination } from "@/types/query.type";
 import { UserDTO } from "@/types/user.type";
 import { Message } from "@prisma/client";
 
@@ -12,7 +13,6 @@ export type FullMessageDTO = Omit<MessageDTO, "senderId" | "seenByIds"> & {
   seenBy: UserDTO[];
 };
 
-export type FullMessagesWithCursorDTO = {
+export type FullMessagesWithCursorDTO = WithCursorPagination & {
   messages: FullMessageDTO[];
-  nextCursor: string | null;
 };

@@ -1,10 +1,10 @@
-import { ConversationFilterInput } from "@/schemas/conversation.schema";
+import { ConversationParamsInput } from "@/schemas/conversation.schema";
 import { UserParamsInput } from "@/schemas/user.schema";
 
 export const QUERY_KEYS = {
   CONVERSATIONS: {
     all: () => ["conversations"],
-    getConversations: (params: ConversationFilterInput) => [
+    getConversations: (params: ConversationParamsInput) => [
       ...QUERY_KEYS.CONVERSATIONS.all(),
       params,
     ],

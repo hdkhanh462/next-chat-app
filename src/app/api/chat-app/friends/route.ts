@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
-import { userParamsSchema } from "@/schemas/user.schema";
 import { getFriends } from "@/data/server/friend";
+import { userParamsSchema } from "@/schemas/user.schema";
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
@@ -10,7 +10,13 @@ export async function GET(req: NextRequest) {
   );
 
   if (!parsedParams.success) {
-    return Response.json("Invalid query params", { status: 400 });
+    return Response.json(
+      {
+        error: "Invalid query params",
+        issues: parsedParams.error.issues,
+      },
+      { status: 400 }
+    );
   }
 
   const friends = await getFriends(parsedParams.data);

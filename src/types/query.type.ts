@@ -1,6 +1,11 @@
 export type WithPagination = {
-  hasPrevious: boolean;
-  hasNext: boolean;
+  pagination: {
+    totalCount: number;
+    currentPage: number;
+    limit: number;
+    hasPrevious: boolean;
+    hasNext: boolean;
+  };
 };
 
 export type WithCursorPagination = {

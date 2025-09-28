@@ -8,7 +8,7 @@ export const createConversationSchema = z.object({
     .max(100, "You can select up to 5 users"),
 });
 
-export const conversationFilterSchema = z.object({
+export const conversationParamsSchema = z.object({
   ...searchSchema.shape,
   ...paginationSchema.shape,
   since: z.coerce.date().optional(),
@@ -16,4 +16,4 @@ export const conversationFilterSchema = z.object({
 });
 
 export type CreateConversationInput = z.infer<typeof createConversationSchema>;
-export type ConversationFilterInput = z.infer<typeof conversationFilterSchema>;
+export type ConversationParamsInput = z.infer<typeof conversationParamsSchema>;

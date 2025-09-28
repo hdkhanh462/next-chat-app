@@ -1,29 +1,24 @@
+import { NextRequest } from "next/server";
+
 import { getConversations } from "@/data/server/conversation";
-import { conversationFilterSchema } from "@/schemas/conversation.schema";
+import { conversationParamsSchema } from "@/schemas/conversation.schema";
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const keyword = searchParams.get("keyword");
-  const since = searchParams.get("since");
-  const after = searchParams.get("after");
+export async function GET(req: NextRequest) {
+  const searchParams = req.nextUrl.searchParams;
+  const parsedParams = conversationParamsSchema.safeParse(
+    Object.fromEntries(searchParams.entries())
+  );
 
-  const parseResult = conversationFilterSchema.safeParse({
-    keyword,
-    since,
-    after,
-  });
-
-  if (!parseResult.success) {
+  if (!parsedParams.success) {
     return Response.json(
       {
-        error: "Invalid query parameters",
-        issues: parseResult.error.issues,
+        error: "Invalid query params",
+        issues: parsedParams.error.issues,
       },
       { status: 400 }
     );
   }
 
-  const convs = await getConversations(parseResult.data);
-
-  return Response.json(convs);
+  const conversations = await getConversations(parsedParams.data);
+  return Response.json(conversations);
 }

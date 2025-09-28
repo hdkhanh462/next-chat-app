@@ -13,3 +13,5 @@ export const cursorPaginationSchema = z.object({
 export const searchSchema = z.object({
   keyword: z.string().optional(),
 });
+
+export type CursorPaginationInput = z.infer<typeof cursorPaginationSchema>;

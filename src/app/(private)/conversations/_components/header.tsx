@@ -1,15 +1,16 @@
 "use client";
 
 import { PanelRightIcon } from "lucide-react";
-import { useState } from "react";
+import { useMemo } from "react";
 
 import AvatarWithIndicator from "@/app/(private)/_components/avartar-with-indicator";
 import OnlineIndicator from "@/app/(private)/_components/online-indicator";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { extractConvDetails } from "@/data/hooks/conversation";
+import { extractConvDetails } from "@/data/queries/conversation";
 import { useUserQuery } from "@/data/queries/user";
+import { usePresenceStore } from "@/lib/zustand/use-presence-store";
 import { FullConversationDTO } from "@/types/conversation.type";
 
 type Props = {
@@ -18,7 +19,29 @@ type Props = {
 
 export default function ConversationHeader({ initial }: Props) {
   const { data: currentUser } = useUserQuery();
-  const [onlineMembers, setOnlineMembers] = useState(1);
+  const onlineUserIds = usePresenceStore((state) => state.onlineUserIds);
+
+  const { onlineText, onlineCount } = useMemo(() => {
+    const onlineMemberIds = initial.members.filter(
+      (m) => onlineUserIds.includes(m.id) && m.id !== currentUser?.id
+    );
+
+    const count = onlineMemberIds.length;
+
+    if (count === 0) {
+      return {
+        onlineText: initial.isGroup ? "No one online" : "Offline",
+        onlineCount: 0,
+      };
+    }
+
+    return {
+      onlineText: initial.isGroup
+        ? `${count.toString().padStart(2, "0")} online`
+        : "Online",
+      onlineCount: count,
+    };
+  }, [initial, currentUser, onlineUserIds]);
 
   if (!currentUser) return null;
 
@@ -43,8 +66,8 @@ export default function ConversationHeader({ initial }: Props) {
         <div>
           <h1 className="text-lg font-semibold leading-none">{displayName}</h1>
           <div className="flex gap-1 items-center text-sm text-muted-foreground">
-            <OnlineIndicator online={onlineMembers > 0} />
-            <span>{onlineMembers.toString().padStart(2, "0")} online</span>
+            <OnlineIndicator online={onlineCount > 0} />
+            <span>{onlineText}</span>
           </div>
         </div>
       </div>

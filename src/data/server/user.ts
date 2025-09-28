@@ -5,8 +5,8 @@ import { cache } from "react";
 
 import { auth } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
-import { FriendShipStatus, UserWithFriendShipStatus } from "@/types/user.type";
 import { UserParamsInput } from "@/schemas/user.schema";
+import { FriendShipStatus, UserWithFriendShipStatus } from "@/types/user.type";
 
 export const getUserCached = cache(async () => {
   const sessionData = await auth.api.getSession({

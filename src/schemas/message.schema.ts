@@ -9,10 +9,4 @@ export const createMessageSchema = z.object({
   images: z.array(z.url()).max(4),
 });
 
-export const messageQueryParamsSchema = z.object({
-  cursor: z.string().min(2).optional(),
-  limit: z.coerce.number().min(5).max(25).default(20),
-});
-
 export type CreateMessageInput = z.infer<typeof createMessageSchema>;
-export type MessageOueryParamsInput = z.infer<typeof messageQueryParamsSchema>;
