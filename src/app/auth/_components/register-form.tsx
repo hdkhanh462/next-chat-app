@@ -20,14 +20,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { AUTH_PATH } from "@/constants/routes";
-import {
-  authClient,
-  getApiErrorDetail,
-  isApiErrorCode,
-} from "@/lib/auth/client";
+import { authClient } from "@/lib/auth/client";
 import { type RegisterInput, registerSchema } from "@/schemas/auth.schema";
 
 import SocialAuthSelector from "@/app/auth/_components/social-auth-seletor";
+import betterAuthToast from "@/components/toasts/better-auth";
 import { PasswordInput } from "@/components/ui/password-input";
 
 export function RegisterForm() {
@@ -48,13 +45,9 @@ export function RegisterForm() {
         ...values,
       });
 
-      if (isApiErrorCode(error?.code)) {
-        form.setValue("password", "");
-        const errorDetail = getApiErrorDetail(error?.code);
-        toast.error(errorDetail.title, {
-          description: errorDetail.description,
-        });
-        return;
+      if (error) {
+        betterAuthToast(error.code);
+        throw new Error(error.message);
       }
       router.push(AUTH_PATH.LOGIN);
       toast.success("Account registed successfully");

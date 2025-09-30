@@ -1,4 +1,7 @@
+"use client";
+
 import { REGEXP_ONLY_DIGITS } from "input-otp";
+import { toast } from "sonner";
 
 import ResendCountdown from "@/app/auth/_components/resend-countdown";
 import { FormControl } from "@/components/ui/form";
@@ -24,6 +27,7 @@ import {
   ForgotPasswordInput,
 } from "@/schemas/forgot-password";
 import { PasswordInput } from "@/components/ui/password-input";
+import betterAuthToast from "@/components/toasts/better-auth";
 
 export const handleResendClick = async (values: EmailFormInput) => {
   const { error } = await authClient.forgetPassword.emailOtp({
@@ -31,7 +35,8 @@ export const handleResendClick = async (values: EmailFormInput) => {
   });
 
   if (error) {
-    console.error("Error resending OTP:", error);
+    console.log("Error resending OTP:", error);
+    betterAuthToast(error.code);
   }
 };
 
@@ -43,7 +48,15 @@ export const handleVerifiOTP = async (values: VerifyEmailInput) => {
   });
 
   if (error) {
-    console.error("Error verifiding OTP:", error);
+    console.log("Error verifying OTP:", error);
+    const isHandled = betterAuthToast(error.code);
+    if (!isHandled) {
+      toast.error("Verification failed", {
+        description:
+          "The OTP you entered is incorrect or has expired. Please try again.",
+      });
+    }
+    throw new Error(error.message);
   }
 };
 

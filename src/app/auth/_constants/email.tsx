@@ -1,6 +1,9 @@
+"use client";
+
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 
 import ResendCountdown from "@/app/auth/_components/resend-countdown";
+import betterAuthToast from "@/components/toasts/better-auth";
 import { FormControl } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -26,7 +29,7 @@ export const handleResendClick = async (values: EmailFormInput) => {
   });
 
   if (error) {
-    console.error("Error resending OTP:", error);
+    betterAuthToast(error.code);
   }
 };
 

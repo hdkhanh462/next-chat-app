@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   forgotPasswordEmailStep,
@@ -15,6 +16,7 @@ import {
   ForgotPasswordInput,
   forgotPasswordSchema,
 } from "@/schemas/forgot-password";
+import betterAuthToast from "@/components/toasts/better-auth";
 
 type Props = {
   initialValues?: Partial<ForgotPasswordInput>;
@@ -38,7 +40,14 @@ export default function ForgotPasswordForm({
     });
 
     if (error) {
-      console.error("Error reset password:", error);
+      const isHandled = betterAuthToast(error.code);
+      if (!isHandled) {
+        toast.error("Reset password failed", {
+          description:
+            "There was an issue resetting your password. Please try again.",
+        });
+      }
+      throw new Error(error.message);
     }
   };
 
