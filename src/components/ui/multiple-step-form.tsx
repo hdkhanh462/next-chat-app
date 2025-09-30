@@ -61,7 +61,7 @@ export type MultipleStepFormProps<TMainSchema> = {
   submitLabel?: string;
   className?: string;
   children: ReactNode;
-  onSubmit?: (data: TMainSchema) => void;
+  onSubmit?: (data: TMainSchema) => Promise<void>;
   stepHeader?: (props: { step: number; progress: number }) => ReactNode;
   stepIndicator?: (props: { step: number; progress: number }) => ReactNode;
 };
@@ -102,8 +102,8 @@ export function MultipleStepForm<TMainSchema>({
           setIsSubmitting(true);
           await currentStep.onSubmit(data, updatedData);
         } catch (error) {
+          console.error("Error in step submit:", error);
           isContinue = false;
-          console.error("Error in step submission:", error);
         } finally {
           setIsSubmitting(false);
         }
@@ -112,23 +112,17 @@ export function MultipleStepForm<TMainSchema>({
       setStep(step + 1);
       // Reset form with the updated data for the next step
       form.reset(updatedData);
-    } else {
-      // Final step submission
-      setIsSubmitting(true);
-      setTimeout(() => {
-        if (onSubmit) {
-          const parsed = schema.safeParse(updatedData);
-          if (!parsed.success) {
-            console.error("Final validation errors:", parsed.error.message);
-            setIsSubmitting(false);
-            return;
-          }
-
-          onSubmit(parsed.data);
-        }
+    } else if (onSubmit) {
+      try {
+        setIsSubmitting(true);
+        const parsedData = schema.parse(updatedData);
+        await onSubmit(parsedData);
         setIsComplete(true);
+      } catch (error) {
+        console.log("Error in final submit:", error);
+      } finally {
         setIsSubmitting(false);
-      }, 1500);
+      }
     }
   };
 

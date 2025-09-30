@@ -63,7 +63,7 @@ export function LoginForm() {
         }
 
         const errorDetail = getApiErrorDetail(error?.code);
-        toast.error(errorDetail.title, {
+        toast.warning(errorDetail.title, {
           description: errorDetail.description,
         });
         return;

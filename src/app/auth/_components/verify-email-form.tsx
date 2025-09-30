@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   verifiEmailEmailStep,
@@ -11,6 +12,7 @@ import { MultipleStepForm } from "@/components/ui/multiple-step-form";
 import { AUTH_PATH } from "@/constants/routes";
 import { authClient } from "@/lib/auth/client";
 import { VerifyEmailInput, verifyEmailSchema } from "@/schemas/email.schema";
+import betterAuthToast from "@/components/toasts/better-auth";
 
 type Props = {
   initialValues?: Partial<VerifyEmailInput>;
@@ -28,7 +30,14 @@ export default function VerifyEmailForm({
     });
 
     if (error) {
-      console.error("Error verifying email:", error);
+      const isHandled = betterAuthToast(error.code);
+      if (!isHandled) {
+        toast.error("Verification failed", {
+          description:
+            "The OTP you entered is incorrect or has expired. Please try again.",
+        });
+      }
+      throw new Error(error.message);
     }
   };
 
