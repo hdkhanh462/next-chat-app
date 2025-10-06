@@ -12,6 +12,7 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "mongodb",
   }),
+  trustedOrigins: [env.BETTER_AUTH_URL],
   plugins: [
     nextCookies(),
     emailOTP({
