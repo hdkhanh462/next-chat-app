@@ -1,3 +1,4 @@
+import { cursorPaginationSchema } from "@/schemas/query.schema";
 import z from "zod";
 
 export const createMessageSchema = z.object({
@@ -10,3 +11,4 @@ export const createMessageSchema = z.object({
 });
 
 export type CreateMessageInput = z.infer<typeof createMessageSchema>;
+export type MessageParamsInput = z.infer<typeof cursorPaginationSchema>;
